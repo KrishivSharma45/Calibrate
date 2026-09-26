@@ -29,3 +29,15 @@ What `run.py` taught me:
 - Only the first 3 fixture titles are searched for ("Glass Signal", "Small Meadow", "Deep Compass"), and
   only on page one of the gallery. Pagination order matters.
 - CSV check = status 200 and a comma in the first line.
+
+## 2026-09-27 — Seeding
+
+- Duplicate rule: a team has one project per event; when there are several, the **latest** submission wins
+  (prj_41 at 17:57 is what the team meant to submit) and earlier ones get `duplicate_of_id`. A partial unique
+  index (`team_id WHERE duplicate_of_id IS NULL`) makes the DB refuse any new second project.
+- Demo session tokens must be fixed (so `.dogfood.toml` survives restarts), which means they are public.
+  A public organizer token on a real deployment = instant takeover. So they only exist while `DEMO_SESSIONS=1`;
+  with `DEMO_SESSIONS=0` boot deletes them. Threat-model item.
+- bcrypt is deliberately slow (~0.25s). Hashing 123 seeded accounts one by one would add ~30s to boot, so the one
+  shared demo password is hashed once. Fine for demo accounts, and documented as such.
+- Gotcha: `docker compose up -d --build` piped to Out-Null in PowerShell kept the old container. Always read build output.
