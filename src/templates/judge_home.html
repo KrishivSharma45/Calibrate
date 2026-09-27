@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Judging · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>Your judging queue</h1>
+<p>{{ done }} of {{ queue | length }} scored. You only see projects assigned to you in your tracks.</p>
+{% if request.query_params.get('saved') %}<p role="status">Score saved.</p>{% endif %}
+<table>
+  <thead><tr><th>Project</th><th>Track</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for p, s in queue %}
+    <tr>
+      <td>{{ p.title }}</td>
+      <td>{{ p.track.name if p.track else "" }}</td>
+      <td>{% if s %}<mark>scored</mark>{% else %}not started{% endif %}</td>
+      <td><a href="/judge/projects/{{ p.id }}">{{ "Review" if s else "Score" }}</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="4">Nothing assigned to you yet.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

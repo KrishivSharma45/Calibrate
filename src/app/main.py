@@ -15,6 +15,7 @@ from app.config import STATIC_DIR
 from app.db import get_db
 from app.routes import auth as auth_routes
 from app.routes import events as event_routes
+from app.routes import judging as judging_routes
 from app.routes import projects as project_routes
 from app.web import render, wants_html
 
@@ -25,6 +26,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(auth_routes.router)
 app.include_router(project_routes.router)
 app.include_router(event_routes.router)
+app.include_router(judging_routes.router)
 
 
 @app.middleware("http")

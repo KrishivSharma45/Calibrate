@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Score {{ project.title }} · Dogfood Portal{% endblock %}
+{% block content %}
+<p><a href="/judge">&larr; Back to your queue</a></p>
+<article>
+  <header>
+    <hgroup><h1>{{ project.title }}</h1><p>{{ project.tagline }}</p></hgroup>
+    <small>{{ event.name }}{% if project.track %} · {{ project.track.name }}{% endif %}</small>
+  </header>
+  {% if project.description and project.description != project.tagline %}<p class="prewrap">{{ project.description }}</p>{% endif %}
+  <ul>
+    {% for label, url in [("Repository", project.repo_url), ("Live", project.live_url), ("Demo video", project.demo_video_url)] %}
+      {% if url %}<li>{{ label }}: <a href="{{ url }}" rel="noopener noreferrer nofollow ugc" target="_blank">{{ url }}</a></li>{% endif %}
+    {% endfor %}
+  </ul>
+  {% for a in project.answers %}{% if questions.get(a.question_id) %}
+    <h4>{{ questions[a.question_id].prompt }}</h4><p class="prewrap">{{ a.answer }}</p>
+  {% endif %}{% endfor %}
+</article>
+
+<h2>Your score</h2>
+{% if errors %}<ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+{% if locked %}
+  <p class="error">Results are published, so scores are frozen.</p>
+{% endif %}
+<form method="post" action="/judge/projects/{{ project.id }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% for c in criteria %}
+  <fieldset>
+    <legend><strong>{{ c.label }}</strong> <small>(weight {{ (c.weight * 100) | round | int }}%)</small></legend>
+    {% for v in range(1, 6) %}
+      <label class="inline-radio"><input type="radio" name="c_{{ c.key }}" value="{{ v }}" required
+        {% if values.get(c.key) | string == v | string %}checked{% endif %} {% if locked %}disabled{% endif %}> {{ v }}</label>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+  <label>Comment <small>(visible to organizers, not to other judges)</small>
+    <textarea name="comment" rows="4" maxlength="5000" {% if locked %}disabled{% endif %}>{{ comment }}</textarea></label>
+  {% if not locked %}<button type="submit">{{ "Update score" if score else "Save score" }}</button>{% endif %}
+</form>
+{% endblock %}

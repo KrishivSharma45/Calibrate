@@ -12,3 +12,4 @@ form.inline button { margin: 0; padding: 0.25rem 0.75rem; }
 .pager { display: flex; gap: 0.75rem; justify-content: center; }
 .prewrap { white-space: pre-wrap; }
 .thumb { max-height: 16rem; border-radius: 0.5rem; }
+.inline-radio { display: inline-block; margin-right: 1.25rem; }

