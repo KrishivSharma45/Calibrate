@@ -118,8 +118,10 @@ class Event(Base):
     results_published_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
 
-    tracks: Mapped[list["Track"]] = relationship(back_populates="event", order_by="Track.id")
-    prizes: Mapped[list["Prize"]] = relationship(back_populates="event")
+    # Explicit order everywhere: without it, a collection comes back in insertion
+    # order within one session but in arbitrary DB order after a reload.
+    tracks: Mapped[list["Track"]] = relationship(back_populates="event", order_by="Track.name")
+    prizes: Mapped[list["Prize"]] = relationship(back_populates="event", order_by="Prize.name")
     questions: Mapped[list["CustomQuestion"]] = relationship(
         back_populates="event", order_by="CustomQuestion.position"
     )
@@ -222,7 +224,8 @@ class Project(Base):
 
     team: Mapped[Team] = relationship()
     track: Mapped[Track | None] = relationship()
-    tags: Mapped[list["ProjectTag"]] = relationship(back_populates="project", cascade="all, delete-orphan")
+    tags: Mapped[list["ProjectTag"]] = relationship(back_populates="project", cascade="all, delete-orphan",
+                                                    order_by="ProjectTag.tag")
     answers: Mapped[list["ProjectAnswer"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )

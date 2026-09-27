@@ -108,7 +108,8 @@ async def score_form(request: Request, project_id: str, user: User = Depends(jud
 
 # --- CSV export -----------------------------------------------------------------------------------
 
-EXPORTS = {"scores": export_svc.scores_csv, "projects": export_svc.projects_csv}
+EXPORTS = {"scores": export_svc.scores_csv, "projects": export_svc.projects_csv,
+           "progress": export_svc.progress_csv}
 
 
 @router.get("/api/export.csv")

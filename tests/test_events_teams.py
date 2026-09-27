@@ -47,7 +47,9 @@ def test_organizer_creates_event_with_tracks_prizes_questions_rubric(client, see
     resp = client.post("/api/events", headers=demo("organizer"), json=event_body())
     assert resp.status_code == 201
     ev = resp.json()
-    assert [t["name"] for t in ev["tracks"]] == ["Web", "Hardware"]
+    assert [t["name"] for t in ev["tracks"]] == ["Hardware", "Web"]  # tracks are ordered by name
+    seeded.expire_all()
+    assert client.get(f"/api/events/{ev['id']}").json()["tracks"] == ev["tracks"]  # same order after reload
     assert ev["prizes"][0]["name"] == "Best in show"
     assert ev["questions"] == [{"id": ev["questions"][0]["id"], "prompt": "Why?", "required": True}]
     assert sum(c["weight"] for c in ev["rubric"]) == pytest.approx(1.0)

@@ -181,7 +181,7 @@ def _apply(project: Project, data: ProjectInput, now: datetime) -> None:
     # Reuse existing child rows: replacing them with new objects that have the same
     # primary key makes the ORM insert before it deletes, which collides.
     tags = {t.tag: t for t in project.tags}
-    project.tags = [tags.get(t) or ProjectTag(tag=t) for t in data.tags]
+    project.tags = [tags.get(t) or ProjectTag(tag=t) for t in sorted(data.tags)]  # same order as a reload
     answers = {a.question_id: a for a in project.answers}
     kept = []
     for qid, text in data.answers.items():

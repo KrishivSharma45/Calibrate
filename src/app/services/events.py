@@ -93,6 +93,9 @@ def _add_children(event: Event, data: EventInput) -> None:
         event.tracks.append(Track(id=new_id("trk"), name=name))
     for name, desc in data.new_prizes:
         event.prizes.append(Prize(id=new_id("prz"), name=name, description=desc))
+    # Keep in-memory order equal to what a reload returns (relationships order by name).
+    event.tracks.sort(key=lambda t: t.name)
+    event.prizes.sort(key=lambda p: p.name)
     start = len(event.questions)
     for i, (prompt, required) in enumerate(data.new_questions):
         event.questions.append(CustomQuestion(id=new_id("q"), prompt=prompt, required=required,

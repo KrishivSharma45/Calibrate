@@ -8,7 +8,7 @@
   <tbody>
   {% for e in events %}
     <tr>
-      <td><a href="/events/{{ e.id }}">{{ e.name }}</a></td>
+      <td><a href="/organizer/events/{{ e.id }}">{{ e.name }}</a></td>
       <td>{{ e.submissions_close.strftime("%Y-%m-%d %H:%M") }}</td>
       <td>{{ e.tracks | length }}</td>
       <td><a href="/organizer/events/{{ e.id }}/edit">Edit</a></td>

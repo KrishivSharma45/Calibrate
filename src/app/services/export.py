@@ -7,7 +7,8 @@ from collections.abc import Iterable
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession, selectinload
 
-from app.models import Project, Team, User
+from app.models import Event, Project, Team, User
+from app.services.assignment import progress
 from app.services.judging import list_scores, scores_out
 
 # A cell starting with one of these is run as a formula by Excel/LibreOffice/Sheets
@@ -41,6 +42,15 @@ def scores_csv(db: DbSession, event_id: str | None) -> str:
     return to_csv(header, ([r["event_id"], r["project_id"], r["project_title"], r["judge_id"],
                             judges.get(r["judge_id"], ""), *[r["criteria"].get(k, "") for k in keys],
                             r["weighted_total"], r["comment"], r["updated_at"]] for r in rows))
+
+
+def progress_csv(db: DbSession, event_id: str | None) -> str:
+    stmt = select(Event).order_by(Event.id)
+    if event_id:
+        stmt = stmt.where(Event.id == event_id)
+    rows = [[event.id, j["judge_id"], j["name"], j["assigned"], j["done"], j["remaining"], j["status"]]
+            for event in db.scalars(stmt) for j in progress(db, event)["judges"]]
+    return to_csv(["event_id", "judge_id", "judge_name", "assigned", "done", "remaining", "status"], rows)
 
 
 def projects_csv(db: DbSession, event_id: str | None) -> str:

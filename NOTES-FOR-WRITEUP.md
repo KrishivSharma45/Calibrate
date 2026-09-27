@@ -102,3 +102,17 @@ What `run.py` taught me:
   dashboard, normalization, publishing and the audit UI. Passing the checker != finishing the tier.
 - Test-writing lesson: asserting `"scores" not in resp.text` failed because the error message says "scores".
   Assert on structure (no `scores` key, no `weighted_total`), not on words.
+## 2026-09-27 — Assignment, rubric editor, progress dashboard
+
+- Auto-assign: most-constrained project first (fewest eligible judges), least-loaded judge per slot, ties by
+  id -> deterministic. Add-only, so re-running is safe and never drops a scored assignment. On the fixture
+  event it adds exactly 8 assignments (the 8 projects with only 2 reviews) and then 0 on a second run.
+- The algorithm is a pure function (`plan_assignments`) with no DB, so it has unit tests of its own:
+  balance, no cross-track, shortfall reported, most-constrained-first, idempotent.
+- Rubric rule: once any score exists, only weights and labels can change (adding a criterion would make
+  every existing score incomplete). Weight changes are audited with before/after; totals recompute.
+- Nasty bug: a test passed alone and failed after another test. Cause: relationships without `order_by`
+  return insertion order inside a session but arbitrary DB order after a reload. Tags, and tracks/prizes of
+  organizer-created events (random ids!) would have shown up shuffled. Fixed with explicit ordering and a test
+  that compares the create response with a fresh reload.
+- SQLAlchemy Row objects in a set: `(a, b) in rows_set` is not something to rely on; build plain tuples.

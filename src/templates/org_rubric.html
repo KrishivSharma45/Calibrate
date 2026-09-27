@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Rubric · {{ event.name }}{% endblock %}
+{% block content %}
+<p><a href="/organizer/events/{{ event.id }}">&larr; {{ event.name }}</a></p>
+<h1>Rubric</h1>
+<p>Judges score each criterion from 1 to 5. A project's weighted total is the sum of score &times; weight,
+  so weights must add up to 100%.</p>
+{% if locked %}
+  <p class="error">Judging has started: you can change weights and labels, but not add or remove criteria.
+    Weight changes are recorded in the audit log.</p>
+{% endif %}
+{% if errors %}<ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" action="/organizer/events/{{ event.id }}/rubric">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <table>
+    <thead><tr><th>Key</th><th>Label</th><th>Weight (%)</th></tr></thead>
+    <tbody>
+    {% for i in range(10) %}
+      {% set r = rows[i] if i < rows | length else none %}
+      {% if r or not locked %}
+      <tr>
+        <td><input name="key_{{ i }}" value="{{ r.key if r else '' }}" {% if locked %}readonly{% endif %}
+                   placeholder="{{ 'new key' if not r else '' }}" pattern="[a-z][a-z0-9_]*"></td>
+        <td><input name="label_{{ i }}" value="{{ r.label if r else '' }}"></td>
+        <td><input name="weight_{{ i }}" value="{{ r.weight if r else '' }}" inputmode="decimal"></td>
+      </tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if not locked %}<p><small>Leave the key empty to leave a row unused; clear a key to remove that criterion.</small></p>{% endif %}
+  <button type="submit">Save rubric</button>
+</form>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Assignments · {{ event.name }}{% endblock %}
+{% block content %}
+<p><a href="/organizer/events/{{ event.id }}">&larr; {{ event.name }}</a></p>
+<h1>Judge assignments</h1>
+<p>Auto-assign gives each project judges from its own track until it has the target number of reviewers,
+  picking the least-loaded judge each time. It only adds; it never removes existing assignments.</p>
+{% if result is not none %}<p role="status">Auto-assign added {{ result }} assignment{{ '' if result == '1' else 's' }}.</p>{% endif %}
+<form method="post" action="/organizer/events/{{ event.id }}/assignments/auto">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <fieldset role="group">
+    <input type="number" name="target" value="3" min="1" max="10" aria-label="Reviews per project">
+    <button type="submit">Auto-assign</button>
+  </fieldset>
+</form>
+
+<table>
+  <thead><tr><th>Project</th><th>Track</th><th>Judges</th><th>Add judge</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    {% set assigned = by_project.get(r.project_id, []) %}
+    <tr class="{{ 'warn' if r.assigned < 3 }}">
+      <td><a href="/projects/{{ r.project_id }}">{{ r.title }}</a></td>
+      <td>{{ tracks.get(r.track_id, '') }}</td>
+      <td>
+        {% for j in assigned | sort %}
+          <div>
+            {{ names.get(j, j) }}
+            {% if (j, r.project_id) in scored %}<small>(scored)</small>{% else %}
+            <form method="post" action="/organizer/events/{{ event.id }}/assignments/remove" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <input type="hidden" name="judge_id" value="{{ j }}">
+              <input type="hidden" name="project_id" value="{{ r.project_id }}">
+              <button type="submit" class="secondary outline">remove</button>
+            </form>{% endif %}
+          </div>
+        {% else %}<small>none</small>{% endfor %}
+      </td>
+      <td>
+        {% set free = track_judges.get(r.track_id, []) | reject('in', assigned) | list %}
+        {% if free %}
+        <form method="post" action="/organizer/events/{{ event.id }}/assignments/add" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="project_id" value="{{ r.project_id }}">
+          <fieldset role="group">
+            <select name="judge_id" aria-label="Judge">{% for j in free %}<option value="{{ j }}">{{ names.get(j, j) }}</option>{% endfor %}</select>
+            <button type="submit">Add</button>
+          </fieldset>
+        </form>
+        {% else %}<small>no other judges in track</small>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

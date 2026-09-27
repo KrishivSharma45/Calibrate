@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} · Organizer{% endblock %}
+{% block content %}
+<p><a href="/organizer">&larr; All events</a></p>
+<hgroup>
+  <h1>{{ event.name }}</h1>
+  <p>Deadline {{ event.submissions_close.strftime("%Y-%m-%d %H:%M UTC") }}
+    {% if event.results_published_at %} · <mark>results published</mark>{% endif %}</p>
+</hgroup>
+<nav>
+  <ul>
+    <li><a href="/organizer/events/{{ event.id }}/edit">Edit event</a></li>
+    <li><a href="/organizer/events/{{ event.id }}/rubric">Rubric</a></li>
+    <li><a href="/organizer/events/{{ event.id }}/assignments">Assignments</a></li>
+    <li><a href="/events/{{ event.id }}">Public page</a></li>
+  </ul>
+</nav>
+
+<h2>Judging progress</h2>
+<div class="grid stats">
+  <article><small>Reviews done</small><h3>{{ p.totals.done }} / {{ p.totals.assignments }}</h3>
+    <progress value="{{ p.totals.done }}" max="{{ p.totals.assignments or 1 }}"></progress></article>
+  <article class="{{ 'warn' if p.totals.judges_not_started }}"><small>Judges not started</small><h3>{{ p.totals.judges_not_started }}</h3></article>
+  <article class="{{ 'warn' if p.totals.judges_incomplete }}"><small>Incomplete batches</small><h3>{{ p.totals.judges_incomplete }}</h3></article>
+  <article class="{{ 'warn' if p.totals.projects_below_target }}"><small>Projects under {{ p.target }} reviews</small><h3>{{ p.totals.projects_below_target }}</h3></article>
+</div>
+
+<h3>Judges</h3>
+<table>
+  <thead><tr><th>Judge</th><th>Assigned</th><th>Done</th><th>Remaining</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for j in p.judges | sort(attribute='status') %}
+    <tr class="{{ 'warn' if j.status in ('not_started', 'incomplete') }}">
+      <td>{{ j.name }} <small>{{ j.judge_id }}</small></td>
+      <td>{{ j.assigned }}</td><td>{{ j.done }}</td><td>{{ j.remaining }}</td>
+      <td>{% if j.status == 'not_started' %}<strong>not started</strong>{% elif j.status == 'incomplete' %}<strong>incomplete</strong>{% else %}{{ j.status | replace('_', ' ') }}{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3>Projects</h3>
+<table>
+  <thead><tr><th>Project</th><th>Assigned</th><th>Reviews</th><th>Judges in track</th></tr></thead>
+  <tbody>
+  {% for r in p.projects %}
+    <tr class="{{ 'warn' if r.below_target }}">
+      <td><a href="/projects/{{ r.project_id }}">{{ r.title }}</a></td>
+      <td>{{ r.assigned }}</td>
+      <td>{{ r.reviews }}{% if r.reviews == 0 %} <strong>unreviewed</strong>{% elif r.below_target %} <small>below target</small>{% endif %}</td>
+      <td>{{ r.eligible_judges }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<h3>Exports</h3>
+<ul>
+  {% for kind in ["projects", "scores", "progress"] %}
+  <li><a href="/api/export.csv?kind={{ kind }}&event={{ event.id }}">{{ kind }}.csv</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

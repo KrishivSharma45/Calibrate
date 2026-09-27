@@ -12,4 +12,8 @@ form.inline button { margin: 0; padding: 0.25rem 0.75rem; }
 .pager { display: flex; gap: 0.75rem; justify-content: center; }
 .prewrap { white-space: pre-wrap; }
 .thumb { max-height: 16rem; border-radius: 0.5rem; }
+tr.warn td { background: color-mix(in srgb, var(--pico-del-color) 12%, transparent); }
+.stats article { margin: 0; }
+.stats article.warn { border-left: 4px solid var(--pico-del-color); }
+.stats h3 { margin: 0.25rem 0; }
 .inline-radio { display: inline-block; margin-right: 1.25rem; }

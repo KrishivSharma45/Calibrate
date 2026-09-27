@@ -187,7 +187,7 @@ def test_html_form_submission(client, open_team):
         "track_id": "trk_demo_2", "tags": "python, fastapi", "action": "submit"})
     assert resp.status_code == 303
     edit_page = client.get(resp.headers["location"], headers=HTML)
-    assert "python, fastapi" in edit_page.text and "submitted" in edit_page.text
+    assert "fastapi, python" in edit_page.text and "submitted" in edit_page.text  # tags ordered by name
 
 
 def test_html_closed_event_shows_page_not_form(client, seeded):
