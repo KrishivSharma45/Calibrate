@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} · Dogfood Portal{% endblock %}
+{% block content %}
+<article>
+  <header>
+    <hgroup>
+      <h1>{{ project.title }}</h1>
+      <p>{{ project.tagline }}</p>
+    </hgroup>
+    <small>{{ event.name }} · team {{ project.team.name }}{% if project.track %} · {{ project.track.name }}{% endif %}
+      · <mark>{{ project.status.value }}</mark></small>
+    {% if project.duplicate_of_id %}
+      <p class="error">Flagged duplicate of <a href="/projects/{{ project.duplicate_of_id }}">{{ project.duplicate_of_id }}</a>; not shown in the gallery or results.</p>
+    {% endif %}
+  </header>
+
+  {% if project.thumbnail_url %}<img src="{{ project.thumbnail_url }}" alt="" class="thumb" referrerpolicy="no-referrer">{% endif %}
+
+  {% if project.description and project.description != project.tagline %}
+    <p class="prewrap">{{ project.description }}</p>
+  {% endif %}
+
+  <ul>
+    {% for label, url in [("Repository", project.repo_url), ("Live", project.live_url), ("Demo video", project.demo_video_url)] %}
+      {% if url %}<li>{{ label }}: <a href="{{ url }}" rel="noopener noreferrer nofollow ugc" target="_blank">{{ url }}</a></li>{% endif %}
+    {% endfor %}
+  </ul>
+
+  {% if project.tags %}<p>{% for t in project.tags %}<a class="tag" href="/projects?tag={{ t.tag | urlencode }}">{{ t.tag }}</a> {% endfor %}</p>{% endif %}
+
+  {% for a in project.answers %}
+    {% if questions.get(a.question_id) %}
+      <h4>{{ questions[a.question_id].prompt }}</h4>
+      <p class="prewrap">{{ a.answer }}</p>
+    {% endif %}
+  {% endfor %}
+
+  <footer>
+    {% if project.submitted_at %}<small>Submitted {{ project.submitted_at.strftime("%Y-%m-%d %H:%M UTC") }}</small>{% endif %}
+    {% if can_edit %} · <a href="/projects/{{ project.id }}/edit">Edit</a>{% endif %}
+  </footer>
+</article>
+{% endblock %}

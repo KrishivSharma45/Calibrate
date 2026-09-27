@@ -10,7 +10,10 @@
 <body>
   <header class="container">
     <nav>
-      <ul><li><a href="/"><strong>Dogfood Portal</strong></a></li></ul>
+      <ul>
+        <li><a href="/"><strong>Dogfood Portal</strong></a></li>
+        <li><a href="/projects">Projects</a></li>
+      </ul>
       <ul>
         {% if user %}
           <li><small>{{ user.name }} · <em>{{ user.role.value }}</em></small></li>

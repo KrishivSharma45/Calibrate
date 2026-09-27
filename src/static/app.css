@@ -2,3 +2,13 @@
 .error { color: var(--pico-del-color); }
 form.inline { margin: 0; }
 form.inline button { margin: 0; padding: 0.25rem 0.75rem; }
+.filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 0.5rem; align-items: start; }
+.filters > * { margin-bottom: 0; }
+@media (max-width: 768px) { .filters { grid-template-columns: 1fr; } }
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+.grid-cards .card { margin: 0; display: flex; flex-direction: column; }
+.grid-cards .card p { flex: 1; }
+.tag { font-size: 0.8em; padding: 0.1rem 0.4rem; border: 1px solid var(--pico-muted-border-color); border-radius: 0.3rem; text-decoration: none; }
+.pager { display: flex; gap: 0.75rem; justify-content: center; }
+.prewrap { white-space: pre-wrap; }
+.thumb { max-height: 16rem; border-radius: 0.5rem; }

@@ -53,3 +53,20 @@ What `run.py` taught me:
   Fix: flush the user first. Would have been a 500 on Postgres in the demo.
 - Unknown email is checked against a dummy bcrypt hash, so "no such user" and "wrong password" take the same
   time and return the same body (no account enumeration).
+
+## 2026-09-27 — Gallery, submission, deadline
+
+- run.py's submit probe carries no event id. Rule: no `event_id` -> use the event of the caller's team. The demo
+  participant is on tm_01 (closed fixture event), so the refusal is the honest one: **409 `submissions_closed`**,
+  not a 403 from auth or CSRF. Tests assert the error code, not just "some 4xx".
+- Deadline is read from the **database clock** (`SELECT now()` on Postgres) and checked on create AND edit,
+  before the membership check, so a closed event answers "closed" to everyone.
+- Drafts return **404** (not 403) to non-members so their existence is not leaked.
+- Only http(s) URLs are stored, so `javascript:` links can never land in an href. Search escapes LIKE
+  wildcards (`%` finds nothing instead of everything).
+- Gallery is alphabetical: neutral, doesn't reward early or late submission, and keeps the first fixture
+  titles on page one for the checker.
+- ORM gotcha avoided: replacing a project's tag rows with new objects that have the same primary key makes
+  SQLAlchemy INSERT before DELETE -> unique violation. Reuse existing rows instead.
+- Windows gotcha: PowerShell 5.1 `Get-Content | Set-Content` turned `·` into `Â·` and added a BOM, and `>`
+  writes UTF-16. Never edit templates or redirect output through PowerShell.

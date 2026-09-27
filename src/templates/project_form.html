@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if project else "New" }} project · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>{{ "Edit project" if project else "New project" }}</h1>
+<p>{{ event.name }} · deadline <strong>{{ event.submissions_close.strftime("%Y-%m-%d %H:%M UTC") }}</strong>
+  {% if project %} · status <mark>{{ project.status.value }}</mark>{% endif %}</p>
+
+{% if saved %}<p role="status">Saved.</p>{% endif %}
+{% if errors %}
+  <ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if not is_open %}
+  <p class="error">Submissions for this event are closed. Nothing can be created or changed.</p>
+{% elif not project and not team %}
+  <p class="error">You need to be on a team for this event before you can submit.</p>
+{% else %}
+<form method="post" action="{{ '/projects/' ~ project.id ~ '/edit' if project else '/projects/new' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="event_id" value="{{ event.id }}">
+  <label>Title <input name="title" value="{{ form.title }}" required maxlength="200"></label>
+  <label>Tagline <input name="tagline" value="{{ form.tagline }}" maxlength="300"></label>
+  <label>Description <textarea name="description" rows="8">{{ form.description }}</textarea></label>
+  <label>Track
+    <select name="track_id">
+      <option value="">Choose a track</option>
+      {% for t in tracks %}<option value="{{ t.id }}" {% if form.track_id == t.id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <div class="grid">
+    <label>Repository URL <input type="url" name="repo_url" value="{{ form.repo_url }}"></label>
+    <label>Live URL <input type="url" name="live_url" value="{{ form.live_url }}"></label>
+  </div>
+  <div class="grid">
+    <label>Demo video URL <input type="url" name="demo_video_url" value="{{ form.demo_video_url }}"></label>
+    <label>Thumbnail URL <input type="url" name="thumbnail_url" value="{{ form.thumbnail_url }}"></label>
+  </div>
+  <label>Tech tags <small>(comma separated)</small> <input name="tags" value="{{ form.tags }}"></label>
+  {% for q in questions %}
+    <label>{{ q.prompt }}{% if q.required %} <small>(required to submit)</small>{% endif %}
+      <textarea name="answer_{{ q.id }}" rows="3">{{ form.answers.get(q.id, '') }}</textarea></label>
+  {% endfor %}
+  <div class="grid">
+    <button type="submit" name="action" value="draft" class="secondary">Save draft</button>
+    <button type="submit" name="action" value="submit">{{ "Save" if project and project.status.value == 'submitted' else "Submit" }}</button>
+  </div>
+  <p><small>You can keep editing until the deadline. After it, the server refuses every change.</small></p>
+</form>
+{% endif %}
+{% if project %}<p><a href="/projects/{{ project.id }}">View project page</a></p>{% endif %}
+{% endblock %}

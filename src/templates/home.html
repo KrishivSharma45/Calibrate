@@ -2,6 +2,10 @@
 {% block content %}
 <h1>Dogfood Portal</h1>
 <p>A self-hosted hackathon submission and judging portal.</p>
+<p>
+  <a href="/projects" role="button">Browse projects</a>
+  {% if user and user.role.value == "participant" %}<a href="/projects/new" role="button" class="secondary">My submission</a>{% endif %}
+</p>
 {% if user %}
   <p>You are logged in as <strong>{{ user.email }}</strong> ({{ user.role.value }}).</p>
 {% else %}

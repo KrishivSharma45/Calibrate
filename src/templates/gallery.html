@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Projects · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>Projects</h1>
+
+<form method="get" action="/projects" class="filters">
+  <input type="search" name="q" value="{{ query.q }}" placeholder="Search title or description" aria-label="Search">
+  <select name="event" aria-label="Event">
+    <option value="">All events</option>
+    {% for ev in events %}<option value="{{ ev.id }}" {% if ev.id == query.event %}selected{% endif %}>{{ ev.name }}</option>{% endfor %}
+  </select>
+  <select name="track" aria-label="Track">
+    <option value="">All tracks</option>
+    {% for ev in events %}
+      <optgroup label="{{ ev.name }}">
+        {% for t in ev.tracks %}<option value="{{ t.id }}" {% if t.id == query.track %}selected{% endif %}>{{ t.name }}</option>{% endfor %}
+      </optgroup>
+    {% endfor %}
+  </select>
+  <select name="tag" aria-label="Tag">
+    <option value="">All tags</option>
+    {% for t in tags %}<option value="{{ t }}" {% if t == query.tag %}selected{% endif %}>{{ t }}</option>{% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+</form>
+
+<p><small>{{ total }} project{{ '' if total == 1 else 's' }}
+  {% if query.q or query.event or query.track or query.tag %} · <a href="/projects">clear filters</a>{% endif %}</small></p>
+
+{% if not projects %}
+  <p>No projects match.</p>
+{% endif %}
+<div class="grid-cards">
+  {% for p in projects %}
+  <article class="card">
+    <header><a href="/projects/{{ p.id }}"><strong>{{ p.title }}</strong></a></header>
+    <p>{{ p.tagline }}</p>
+    <footer>
+      <small>{{ p.team.name }}{% if p.track %} · <a href="/projects?track={{ p.track_id }}">{{ p.track.name }}</a>{% endif %}</small>
+      {% if p.tags %}<br>{% for t in p.tags %}<a class="tag" href="/projects?tag={{ t.tag | urlencode }}">{{ t.tag }}</a> {% endfor %}{% endif %}
+    </footer>
+  </article>
+  {% endfor %}
+</div>
+
+{% set pages = ((total + page_size - 1) // page_size) %}
+{% if pages > 1 %}
+<nav class="pager">
+  {% for n in range(1, pages + 1) %}
+    {% if n == query.page %}<strong>{{ n }}</strong>{% else %}
+    <a href="/projects?q={{ query.q | urlencode }}&event={{ query.event }}&track={{ query.track }}&tag={{ query.tag | urlencode }}&page={{ n }}">{{ n }}</a>{% endif %}
+  {% endfor %}
+</nav>
+{% endif %}
+{% endblock %}

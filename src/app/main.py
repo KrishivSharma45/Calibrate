@@ -14,6 +14,7 @@ from app.auth import attach_auth, csrf_protect
 from app.config import STATIC_DIR
 from app.db import get_db
 from app.routes import auth as auth_routes
+from app.routes import projects as project_routes
 from app.web import render, wants_html
 
 # Every route, present and future, runs attach_auth + csrf_protect first.
@@ -21,6 +22,7 @@ app = FastAPI(title="Dogfood Portal", version="0.1.0",
               dependencies=[Depends(attach_auth), Depends(csrf_protect)])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(auth_routes.router)
+app.include_router(project_routes.router)
 
 
 @app.middleware("http")
@@ -45,7 +47,12 @@ async def http_error(request: Request, exc: StarletteHTTPException):
     if exc.status_code == 401 and request.method == "GET":
         target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
         return RedirectResponse(f"/login?next={quote(target)}", status_code=303)
-    message = exc.detail if isinstance(exc.detail, str) else "Request refused."
+    detail = exc.detail
+    if isinstance(detail, dict):
+        detail = detail.get("message")
+    elif isinstance(detail, list):
+        detail = " ".join(map(str, detail))
+    message = detail if isinstance(detail, str) and detail else "Request refused."
     return render(request, "error.html", {"status": exc.status_code, "message": message},
                   status_code=exc.status_code)
 

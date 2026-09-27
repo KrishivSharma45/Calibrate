@@ -1,0 +1,22 @@
+[portal]
+base_url = "http://localhost:8080"
+
+[tiers]
+# Honest claims only: T2 routes are not built yet.
+claimed = ["T1"]
+pitch = "A self-hosted hackathon portal with backend-enforced judge isolation and normalized scoring."
+
+[auth]
+# Printed by the portal on boot. Demo-only sessions; they exist while DEMO_SESSIONS=1.
+organizer   = "Cookie: session=demo-organizer-6c1f0e4b9a7d2358"
+judge_a     = "Cookie: session=demo-judge-a-2b8e5d71c4f9a036"
+judge_b     = "Cookie: session=demo-judge-b-9f3a6c0d8e1b7425"
+participant = "Cookie: session=demo-participant-4e7b1a9c3d5f8062"
+
+[routes]
+gallery      = "/projects"
+submit       = "/projects/new"
+judge_scores = "/api/judge/scores"
+# judge_a is jdg_09; the checker sends this as judge_b (jdg_26).
+peer_scores  = "/api/judge/scores?judge=jdg_09"
+csv_export   = "/api/export.csv"
