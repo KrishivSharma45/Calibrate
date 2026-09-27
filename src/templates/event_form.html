@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if event else "New" }} event · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>{{ "Edit " ~ event.name if event else "New event" }}</h1>
+{% if errors %}
+  <ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+{% endif %}
+<form method="post" action="{{ '/organizer/events/' ~ event.id ~ '/edit' if event else '/organizer/events/new' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>Name <input name="name" value="{{ f.name or '' }}" required maxlength="200"></label>
+  <label>Description <textarea name="description" rows="3">{{ f.description or '' }}</textarea></label>
+  <div class="grid">
+    <label>Submissions open (UTC, optional)
+      <input type="datetime-local" name="submissions_open" value="{{ f.submissions_open or '' }}"></label>
+    <label>Submission deadline (UTC)
+      <input type="datetime-local" name="submissions_close" value="{{ f.submissions_close or '' }}" required></label>
+    <label>Max team size
+      <input type="number" name="max_team_size" min="1" max="20" value="{{ f.max_team_size or 4 }}"></label>
+  </div>
+
+  {% if event %}
+    <p><small>Existing tracks: {{ event.tracks | map(attribute='name') | join(', ') }}.
+      Existing items are kept; the lists below only add new ones.</small></p>
+  {% endif %}
+  <label>{{ "Add tracks" if event else "Tracks" }} <small>(one per line)</small>
+    <textarea name="tracks" rows="4">{{ f.tracks or '' }}</textarea></label>
+  <label>{{ "Add prizes" if event else "Prizes" }} <small>(one per line, "Name: description")</small>
+    <textarea name="prizes" rows="3">{{ f.prizes or '' }}</textarea></label>
+  <label>{{ "Add custom questions" if event else "Custom questions" }} <small>(one per line; start with * to make it required)</small>
+    <textarea name="questions" rows="3">{{ f.questions or '' }}</textarea></label>
+  {% if not event %}<p><small>The rubric starts as Functionality 40%, Quality 30%, Innovation 30%; you can change it before judging.</small></p>{% endif %}
+  <button type="submit">{{ "Save changes" if event else "Create event" }}</button>
+</form>
+{% endblock %}

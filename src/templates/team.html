@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} · Dogfood Portal{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>{{ team.name }}</h1>
+  <p><a href="/events/{{ event.id }}">{{ event.name }}</a> · {{ team.members | length }} / {{ event.max_team_size }} members</p>
+</hgroup>
+
+<h3>Members</h3>
+<ul>{% for m in team.members %}<li>{{ m.user.name }}</li>{% endfor %}</ul>
+
+<h3>Project</h3>
+{% if project %}
+  <p><a href="/projects/{{ project.id }}">{{ project.title }}</a> · <mark>{{ project.status.value }}</mark>
+    {% if is_member and is_open %} · <a href="/projects/{{ project.id }}/edit">Edit</a>{% endif %}</p>
+{% elif is_member and is_open %}
+  <p><a href="/projects/new?event={{ event.id }}" role="button">Start your project</a></p>
+{% else %}
+  <p><small>No project.</small></p>
+{% endif %}
+
+{% if is_member %}
+<article>
+  <header><strong>Invite link</strong></header>
+  {% if is_open and team.members | length < event.max_team_size %}
+    <p>Share this link with teammates. Anyone with it can join until the team is full or the deadline passes.</p>
+    <input readonly value="{{ invite_url }}" aria-label="Invite link">
+  {% else %}
+    <p><small>Joining is closed (team full or deadline passed).</small></p>
+  {% endif %}
+  <form method="post" action="/teams/{{ team.id }}/invite/rotate">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="secondary outline">Replace link (old link stops working)</button>
+  </form>
+</article>
+{% endif %}
+{% endblock %}

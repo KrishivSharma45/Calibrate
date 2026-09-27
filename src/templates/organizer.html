@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Organizer · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>Organizer</h1>
+<p><a href="/organizer/events/new" role="button">New event</a></p>
+<table>
+  <thead><tr><th>Event</th><th>Deadline (UTC)</th><th>Tracks</th><th></th></tr></thead>
+  <tbody>
+  {% for e in events %}
+    <tr>
+      <td><a href="/events/{{ e.id }}">{{ e.name }}</a></td>
+      <td>{{ e.submissions_close.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td>{{ e.tracks | length }}</td>
+      <td><a href="/organizer/events/{{ e.id }}/edit">Edit</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

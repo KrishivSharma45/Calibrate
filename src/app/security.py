@@ -1,6 +1,7 @@
 """Password hashing and session tokens."""
 
 import hashlib
+import os
 import secrets
 from datetime import datetime, timedelta
 
@@ -10,10 +11,13 @@ from sqlalchemy.orm import Session as DbSession
 from app.models import Session, User, utcnow
 
 SESSION_LIFETIME = timedelta(days=7)
+# bcrypt cost: 12 (~0.25s per hash) in real use. Tests lower it via the env var
+# only to run fast; verify_password reads the cost from the stored hash.
+BCRYPT_ROUNDS = int(os.environ.get("BCRYPT_ROUNDS", "12"))
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt(rounds=BCRYPT_ROUNDS)).decode()
 
 
 def verify_password(password: str, password_hash: str | None) -> bool:

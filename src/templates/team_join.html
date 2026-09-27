@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Join {{ team.name }} · Dogfood Portal{% endblock %}
+{% block content %}
+<article class="narrow">
+  <h1>Join {{ team.name }}?</h1>
+  <p>{{ event.name }} · {{ count }} / {{ event.max_team_size }} members</p>
+  {% if already %}
+    <p>You are already on this team. <a href="/teams/{{ team.id }}">Go to team page</a></p>
+  {% elif not can_join %}
+    <p class="error">Only participants can join teams.</p>
+  {% elif not is_open %}
+    <p class="error">Submissions for this event are closed, so teams can no longer change.</p>
+  {% elif count >= event.max_team_size %}
+    <p class="error">This team is full.</p>
+  {% else %}
+    <form method="post" action="/teams/join/{{ token }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Join team</button>
+    </form>
+  {% endif %}
+</article>
+{% endblock %}

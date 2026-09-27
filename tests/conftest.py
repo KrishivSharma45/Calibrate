@@ -1,5 +1,8 @@
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault("BCRYPT_ROUNDS", "4")  # minimum cost: tests only, keeps the suite fast
 
 import pytest
 from sqlalchemy import create_engine, event

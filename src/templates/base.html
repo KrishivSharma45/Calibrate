@@ -12,7 +12,9 @@
     <nav>
       <ul>
         <li><a href="/"><strong>Dogfood Portal</strong></a></li>
+        <li><a href="/events">Events</a></li>
         <li><a href="/projects">Projects</a></li>
+        {% if user and user.role.value in ("organizer", "admin") %}<li><a href="/organizer">Organizer</a></li>{% endif %}
       </ul>
       <ul>
         {% if user %}

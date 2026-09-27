@@ -1,7 +1,5 @@
 """Gallery (public) and project submission (team members, until the deadline)."""
 
-import json
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select
@@ -12,7 +10,7 @@ from app.auth import current_user, require_user
 from app.db import get_db
 from app.models import Event, Project, Track, User
 from app.services import projects as svc
-from app.web import render, wants_html
+from app.web import read_body, render, wants_html
 
 router = APIRouter()
 
@@ -21,14 +19,8 @@ router = APIRouter()
 
 
 async def read_input(request: Request) -> tuple[svc.ProjectInput, str | None]:
-    content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
-    if content_type == "application/json":
-        try:
-            body = json.loads(await request.body() or b"{}")
-        except ValueError:
-            raise HTTPException(status_code=422, detail="Body is not valid JSON")
-        if not isinstance(body, dict):
-            raise HTTPException(status_code=422, detail="Body must be a JSON object")
+    body, is_json = await read_body(request)
+    if is_json:
         text = lambda k, default="": str(body.get(k) or default)  # noqa: E731
         data = svc.ProjectInput(
             title=text("title"), tagline=text("tagline", body.get("summary") or ""),
@@ -40,7 +32,7 @@ async def read_input(request: Request) -> tuple[svc.ProjectInput, str | None]:
             submit=bool(body.get("submit")),
         )
         return data, body.get("event_id")
-    form = await request.form()
+    form = body
     get = lambda k: str(form.get(k) or "")  # noqa: E731
     data = svc.ProjectInput(
         title=get("title"), tagline=get("tagline"), description=get("description"),

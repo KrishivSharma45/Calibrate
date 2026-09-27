@@ -1,6 +1,8 @@
 """HTML rendering helpers shared by all page routes."""
 
-from fastapi import Request
+import json
+
+from fastapi import HTTPException, Request
 from fastapi.templating import Jinja2Templates
 
 from app.auth import csrf_token_for, current_user, set_anon_csrf_cookie
@@ -19,6 +21,20 @@ def render(request: Request, template: str, context: dict | None = None, status_
     if is_new:
         set_anon_csrf_cookie(response, token)
     return response
+
+
+async def read_body(request: Request) -> tuple[dict, bool]:
+    """Return (fields, is_json) for either a JSON object or an HTML form post."""
+    content_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if content_type == "application/json":
+        try:
+            body = json.loads(await request.body() or b"{}")
+        except ValueError:
+            raise HTTPException(status_code=422, detail="Body is not valid JSON")
+        if not isinstance(body, dict):
+            raise HTTPException(status_code=422, detail="Body must be a JSON object")
+        return body, True
+    return {k: v for k, v in (await request.form()).items()}, False
 
 
 def wants_html(request: Request) -> bool:

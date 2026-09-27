@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Events · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>Events</h1>
+{% for e in events %}
+<article>
+  <header><a href="/events/{{ e.id }}"><strong>{{ e.name }}</strong></a>
+    {% if open[e.id] %}<mark>open</mark>{% else %}<small>closed</small>{% endif %}</header>
+  <p>{{ e.description }}</p>
+  <small>Deadline {{ e.submissions_close.strftime("%Y-%m-%d %H:%M UTC") }} · {{ e.tracks | length }} tracks</small>
+</article>
+{% else %}
+<p>No events yet.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} · Dogfood Portal{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>{{ event.name }}</h1>
+  <p>{{ event.description }}</p>
+</hgroup>
+<p>
+  {% if event.submissions_open %}Opens {{ event.submissions_open.strftime("%Y-%m-%d %H:%M UTC") }} · {% endif %}
+  Deadline <strong>{{ event.submissions_close.strftime("%Y-%m-%d %H:%M UTC") }}</strong>
+  · {% if is_open %}<mark>open for submissions</mark>{% else %}closed{% endif %}
+  · teams up to {{ event.max_team_size }}
+</p>
+<p><a href="/projects?event={{ event.id }}">See this event's projects</a>
+  {% if user and user.role.value in ("organizer", "admin") %} · <a href="/organizer/events/{{ event.id }}/edit">Edit event</a>{% endif %}</p>
+
+{% if user and user.role.value == "participant" %}
+<article>
+  <header><strong>Your team</strong></header>
+  {% if team %}
+    <p>You are on <a href="/teams/{{ team.id }}">{{ team.name }}</a>.
+      {% if is_open %}<a href="/projects/new?event={{ event.id }}">Open your submission</a>{% endif %}</p>
+  {% elif is_open %}
+    <form method="post" action="/events/{{ event.id }}/teams">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <fieldset role="group">
+        <input name="name" placeholder="Team name" required maxlength="200">
+        <button type="submit">Create team</button>
+      </fieldset>
+    </form>
+    <p><small>Or ask a teammate for their invite link.</small></p>
+  {% else %}
+    <p>You are not on a team, and submissions are closed.</p>
+  {% endif %}
+</article>
+{% elif not user and is_open %}
+<p><a href="/login?next=/events/{{ event.id }}">Log in</a> to form a team and submit.</p>
+{% endif %}
+
+<div class="grid">
+  <section>
+    <h3>Tracks</h3>
+    <ul>{% for t in event.tracks %}<li><a href="/projects?track={{ t.id }}">{{ t.name }}</a></li>{% endfor %}</ul>
+  </section>
+  <section>
+    <h3>Prizes</h3>
+    {% if event.prizes %}
+      <ul>{% for p in event.prizes %}<li><strong>{{ p.name }}</strong>{% if p.description %}: {{ p.description }}{% endif %}</li>{% endfor %}</ul>
+    {% else %}<p><small>None listed.</small></p>{% endif %}
+  </section>
+  <section>
+    <h3>Judging rubric</h3>
+    <ul>{% for c in event.criteria %}<li>{{ c.label }}: {{ (c.weight * 100) | round | int }}%</li>{% endfor %}</ul>
+  </section>
+</div>
+{% endblock %}

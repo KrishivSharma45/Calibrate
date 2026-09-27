@@ -70,3 +70,18 @@ What `run.py` taught me:
   SQLAlchemy INSERT before DELETE -> unique violation. Reuse existing rows instead.
 - Windows gotcha: PowerShell 5.1 `Get-Content | Set-Content` turned `·` into `Â·` and added a BOM, and `>`
   writes UTF-16. Never edit templates or redirect output through PowerShell.
+## 2026-09-27 — Teams and events
+
+- Invite link = 192-bit random token in the URL. Opening it (GET) only shows a confirmation page; joining is a
+  CSRF-protected POST. Otherwise `<img src=".../teams/join/TOKEN">` on any site would silently add the viewer.
+- Links can be rotated; the old one 404s immediately. Referrer-Policy `same-origin` keeps the token from leaking
+  to external sites through the Referer header.
+- Team-size race: `SELECT ... FOR UPDATE` on the team row serialises joins on Postgres; the
+  `uq_one_team_per_event` constraint is the backstop. E2E on Docker: two simultaneous joins for the last slot ->
+  one 200, one 409, team size stays at the limit.
+- Only participants can be on teams (judges/organizers on teams = conflict of interest).
+- Deadline moves get their own audit action (`event.deadline_change`) with old and new values.
+- Bugs caught by tests: `int(value or 4)` silently turned team size 0 into 4 (falsy zero!), and tracks added
+  with `db.add` did not appear in the already-loaded `event.tracks` collection. Append through relationships.
+- An inline `onclick` would have been silently blocked by our own CSP. Kept the CSP, dropped the inline JS.
+- Test suite went from 138s to 77s by using bcrypt cost 4 in tests only (BCRYPT_ROUNDS env var).
