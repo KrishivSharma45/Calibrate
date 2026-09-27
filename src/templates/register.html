@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Register · Dogfood Portal{% endblock %}
+{% block content %}
+<article class="narrow">
+  <h1>Register</h1>
+  <p>New accounts are participants. Judges and organizers are set up by an organizer.</p>
+  {% if errors %}
+    <ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+  <form method="post" action="/register">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Name <input type="text" name="name" value="{{ name or '' }}" required maxlength="200" autocomplete="name"></label>
+    <label>Email <input type="email" name="email" value="{{ email or '' }}" required autocomplete="email"></label>
+    <label>Password <small>(at least 10 characters)</small>
+      <input type="password" name="password" required minlength="10" autocomplete="new-password"></label>
+    <button type="submit">Create account</button>
+  </form>
+</article>
+{% endblock %}

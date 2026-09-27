@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Dogfood Portal{% endblock %}</title>
+  <link rel="stylesheet" href="/static/pico.min.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul><li><a href="/"><strong>Dogfood Portal</strong></a></li></ul>
+      <ul>
+        {% if user %}
+          <li><small>{{ user.name }} · <em>{{ user.role.value }}</em></small></li>
+          <li>
+            <form method="post" action="/logout" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button type="submit" class="secondary outline">Log out</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="/login">Log in</a></li>
+          <li><a href="/register" role="button">Register</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

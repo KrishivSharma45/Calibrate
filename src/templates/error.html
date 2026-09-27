@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ status }} · Dogfood Portal{% endblock %}
+{% block content %}
+<article class="narrow">
+  <h1>{{ status }}</h1>
+  <p>{{ message }}</p>
+  <p><a href="/">Back to the start</a></p>
+</article>
+{% endblock %}

@@ -17,5 +17,9 @@ FIXTURES_PATH = Path(os.environ.get("FIXTURES_PATH", REPO_DIR / "fixtures.json")
 # demo; set DEMO_SESSIONS=0 on a real deployment and boot deletes them.
 DEMO_SESSIONS = os.environ.get("DEMO_SESSIONS", "1") == "1"
 
-STATIC_DIR =SRC_DIR / "static"
+# Send cookies only over HTTPS. Off by default because the demo runs on
+# plain http://localhost; turn on behind TLS.
+COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"
+
+STATIC_DIR = SRC_DIR / "static"
 TEMPLATES_DIR = SRC_DIR / "templates"

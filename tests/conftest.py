@@ -30,3 +30,37 @@ def db():
     finally:
         session.close()
         engine.dispose()
+
+
+@pytest.fixture
+def client(db):
+    """HTTP client whose requests hit the same test database as `db`."""
+    from fastapi.testclient import TestClient
+
+    from app.auth import login_throttle
+    from app.db import get_db
+    from app.main import app
+
+    app.dependency_overrides[get_db] = lambda: db
+    login_throttle.failures.clear()
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="session")
+def fixtures_data():
+    import json
+
+    from app.config import FIXTURES_PATH
+
+    return json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))
+
+
+@pytest.fixture
+def seeded(db):
+    from app.config import FIXTURES_PATH
+    from app.seed import run_seed
+
+    run_seed(db, FIXTURES_PATH, demo_sessions=True)
+    return db

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dogfood Portal</h1>
+<p>A self-hosted hackathon submission and judging portal.</p>
+{% if user %}
+  <p>You are logged in as <strong>{{ user.email }}</strong> ({{ user.role.value }}).</p>
+{% else %}
+  <p><a href="/login">Log in</a> or <a href="/register">register</a> to take part.</p>
+{% endif %}
+{% endblock %}

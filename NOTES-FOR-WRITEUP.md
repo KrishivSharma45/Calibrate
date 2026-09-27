@@ -41,3 +41,15 @@ What `run.py` taught me:
 - bcrypt is deliberately slow (~0.25s). Hashing 123 seeded accounts one by one would add ~30s to boot, so the one
   shared demo password is hashed once. Fine for demo accounts, and documented as such.
 - Gotcha: `docker compose up -d --build` piped to Out-Null in PowerShell kept the old container. Always read build output.
+
+## 2026-09-27 — Auth
+
+- CSRF is an **app-wide** FastAPI dependency, not per-route, so a new route cannot forget it. Unsafe requests
+  must be JSON (cross-site forms can't send application/json without a CORS preflight, which we never answer)
+  or carry a token. A test proves the classic `enctype="text/plain"` fake-JSON trick gets a 403.
+- Anonymous forms (login/register) use a double-submit cookie, so login CSRF is covered too.
+- Bug caught by a test: registering wrote the audit row *before* the user row -> FK violation. SQLAlchemy's
+  unit of work only orders inserts it knows are related, and audit_log has no ORM relationship to users.
+  Fix: flush the user first. Would have been a 500 on Postgres in the demo.
+- Unknown email is checked against a dummy bcrypt hash, so "no such user" and "wrong password" take the same
+  time and return the same body (no account enumeration).

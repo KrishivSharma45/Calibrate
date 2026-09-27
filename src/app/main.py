@@ -1,15 +1,58 @@
 """FastAPI application entry point."""
 
-from fastapi import Depends, FastAPI
+from urllib.parse import quote
+
+from fastapi import Depends, FastAPI, Request
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.auth import attach_auth, csrf_protect
 from app.config import STATIC_DIR
 from app.db import get_db
+from app.routes import auth as auth_routes
+from app.web import render, wants_html
 
-app = FastAPI(title="Dogfood Portal", version="0.1.0")
+# Every route, present and future, runs attach_auth + csrf_protect first.
+app = FastAPI(title="Dogfood Portal", version="0.1.0",
+              dependencies=[Depends(attach_auth), Depends(csrf_protect)])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.include_router(auth_routes.router)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    # Everything is served locally, so nothing else is ever needed.
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; img-src 'self' https: data:; frame-ancestors 'none'; form-action 'self'",
+    )
+    return response
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error(request: Request, exc: StarletteHTTPException):
+    """API clients get JSON with the real status; browsers get a page."""
+    if not wants_html(request):
+        return await http_exception_handler(request, exc)
+    if exc.status_code == 401 and request.method == "GET":
+        target = request.url.path + (f"?{request.url.query}" if request.url.query else "")
+        return RedirectResponse(f"/login?next={quote(target)}", status_code=303)
+    message = exc.detail if isinstance(exc.detail, str) else "Request refused."
+    return render(request, "error.html", {"status": exc.status_code, "message": message},
+                  status_code=exc.status_code)
+
+
+@app.get("/")
+def home(request: Request):
+    return render(request, "home.html")
 
 
 @app.get("/healthz")
