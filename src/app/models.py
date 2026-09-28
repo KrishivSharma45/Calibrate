@@ -353,6 +353,48 @@ class ScoreItem(Base):
     __table_args__ = (CheckConstraint("value BETWEEN 1 AND 5", name="ck_score_value_range"),)
 
 
+# --- community (T3) ------------------------------------------------------------
+# Separate tables (not new columns on events) so an existing database picks them
+# up with create_all, without a migration.
+
+
+class VotingWindow(Base):
+    __tablename__ = "voting_windows"
+
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), primary_key=True)
+    opens_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    closes_at: Mapped[datetime] = mapped_column(UTCDateTime)
+
+    __table_args__ = (CheckConstraint("opens_at < closes_at", name="ck_voting_window_order"),)
+
+
+class Vote(Base):
+    """One community vote. The unique constraint is the anti-stuffing rule."""
+
+    __tablename__ = "votes"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    event_id: Mapped[str] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), index=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+
+    __table_args__ = (UniqueConstraint("user_id", "project_id", name="uq_one_vote_per_user_project"),)
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    hidden_at: Mapped[datetime | None] = mapped_column(UTCDateTime)  # moderation; never deleted
+
+    user: Mapped[User] = relationship()
+
+
 # --- audit -----------------------------------------------------------------
 
 

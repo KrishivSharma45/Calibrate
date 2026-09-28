@@ -56,6 +56,17 @@
   </tbody>
 </table>
 
+<h3>Community voting</h3>
+<p><a href="/events/{{ event.id }}/ballot">Ballot and live tallies</a> (tallies are visible to you now, to everyone else after voting closes).</p>
+<form method="post" action="/organizer/events/{{ event.id }}/voting">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="grid">
+    <label>Voting opens (UTC) <input type="datetime-local" name="opens_at" required></label>
+    <label>Voting closes (UTC) <input type="datetime-local" name="closes_at" required></label>
+  </div>
+  <button type="submit" class="secondary">Set voting window</button>
+</form>
+
 <h3>Exports</h3>
 <ul>
   {% for kind in ["projects", "scores", "progress", "results"] %}

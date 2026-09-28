@@ -6,9 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session as DbSession
 from starlette.concurrency import run_in_threadpool
 
-from app.auth import current_user, require_user
+from app.auth import STAFF, current_user, require_user
 from app.db import get_db
 from app.models import Event, Project, Track, User
+from app.services import community
 from app.services import projects as svc
 from app.web import read_body, render, wants_html
 
@@ -154,10 +155,13 @@ def _visible_project(db: DbSession, user: User | None, project_id: str) -> Proje
 def project_page(request: Request, project_id: str, db: DbSession = Depends(get_db)):
     user = current_user(request)
     project = _visible_project(db, user, project_id)
+    is_staff = user is not None and user.role in STAFF
     return render(request, "project_detail.html", {
         "project": project, "event": db.get(Event, project.event_id),
         "questions": {q.id: q for q in svc.questions_for(db, project.event_id)},
         "can_edit": user is not None and svc.is_member(db, user, project.team_id),
+        "comments": community.visible_comments(db, project.id, include_hidden=is_staff),
+        "is_staff": is_staff,
     })
 
 

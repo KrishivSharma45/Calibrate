@@ -23,10 +23,10 @@ flowchart LR
 | `src/app/seed.py` | Idempotent import of `fixtures.json`, demo accounts, demo event, fixed demo sessions. |
 | `src/app/boot.py` | Container entry point: create tables, seed, print headers, start uvicorn. |
 | `src/app/routes/*` | Thin HTTP layer: parse form **or** JSON, call a service, render a page or return JSON. |
-| `src/app/services/*` | All rules: deadlines, teams, submissions, judging isolation, assignment, normalization, exports, people. |
+| `src/app/services/*` | All rules: deadlines, teams, submissions, judging isolation, assignment, normalization, exports, people, community voting and comments. |
 | `src/templates/`, `src/static/` | Jinja2 templates; Pico.css is vendored (no CDN). |
 | `scripts/normalization_report.py` | Raw vs normalized ranking on the fixtures (see [JUDGING.md](JUDGING.md)). |
-| `tests/` | 199 pytest tests, mostly over HTTP like curl. |
+| `tests/` | 223 pytest tests, mostly over HTTP like curl. |
 
 ## Request flow
 

@@ -2,8 +2,8 @@
 base_url = "http://localhost:8080"
 
 [tiers]
-# Honest claims only. T3 (community voting) is not built.
-claimed = ["T1", "T2"]
+# Honest claims only. run.py has no T3 checks; T3 is backed by tests/test_community.py (24 tests). T4 not claimed.
+claimed = ["T1", "T2", "T3"]
 pitch = "Self-hosted hackathon portal: backend-enforced judge isolation, in-track balanced assignment, and confidence-weighted z-score normalization that lets flat judges abstain."
 
 [auth]

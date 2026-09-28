@@ -40,12 +40,13 @@ def client(db):
     """HTTP client whose requests hit the same test database as `db`."""
     from fastapi.testclient import TestClient
 
-    from app.auth import login_throttle
+    from app.auth import comment_limit, login_throttle, vote_limit
     from app.db import get_db
     from app.main import app
 
     app.dependency_overrides[get_db] = lambda: db
-    login_throttle.failures.clear()
+    for limiter in (login_throttle, vote_limit, comment_limit):
+        limiter.failures.clear()
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

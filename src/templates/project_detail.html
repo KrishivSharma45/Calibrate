@@ -40,4 +40,32 @@
     {% if can_edit %} · <a href="/projects/{{ project.id }}/edit">Edit</a>{% endif %}
   </footer>
 </article>
+
+{% if project.status.value == "submitted" and not project.duplicate_of_id %}
+<section id="comments">
+  <h3>Comments</h3>
+  {% for c in comments %}
+    <article class="{{ 'warn' if c.hidden_at }}">
+      <small><strong>{{ c.user.name }}</strong> · {{ c.created_at.strftime("%Y-%m-%d %H:%M UTC") }}{% if c.hidden_at %} · <em>hidden by moderator</em>{% endif %}</small>
+      <p class="prewrap">{{ c.body }}</p>
+      {% if is_staff and not c.hidden_at %}
+      <form method="post" action="/comments/{{ c.id }}/hide" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="secondary outline">Hide</button>
+      </form>{% endif %}
+    </article>
+  {% else %}
+    <p><small>No comments yet.</small></p>
+  {% endfor %}
+  {% if user %}
+  <form method="post" action="/projects/{{ project.id }}/comments">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Add a comment <textarea name="body" rows="3" maxlength="2000" required></textarea></label>
+    <button type="submit">Post comment</button>
+  </form>
+  {% else %}
+  <p><small><a href="/login?next=/projects/{{ project.id }}">Log in</a> to comment.</small></p>
+  {% endif %}
+</section>
+{% endif %}
 {% endblock %}

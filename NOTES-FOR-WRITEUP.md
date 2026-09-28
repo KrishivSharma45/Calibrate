@@ -142,3 +142,17 @@ What `run.py` taught me:
   The honest version is a better argument than the tidy one.
 - THREAT-MODEL.md cites 47 test names as evidence; a script checks every one exists.
 - Final: fresh `docker compose down -v && up`, run.py "claimed T1 T2, verified T1 T2".
+## 2026-09-28 — T3: voting, ballot, comments
+
+- Votes: participants only, not for your own team, only inside the window (DB clock), one per project by a
+  DB unique constraint. On Postgres, two identical votes fired at the same moment -> one 200, one 409.
+  The app-level "already voted?" check alone would have let both through; the constraint is the real rule.
+- Tallies hidden from non-staff until the window closes (so no one can watch the count and target a rival).
+- Ballot order: random.Random(sha256(event:user)).shuffle - stable per user (no reload-until-first),
+  different across users (no position bias). Pure function, unit-tested.
+- Anti-abuse honesty: Sybil accounts are NOT stopped (open registration, no email offline). Staff get a
+  signal instead: votes from accounts created after voting opened.
+- New tables instead of new columns on `events`, so an existing database gets them from create_all without
+  a migration.
+- run.py has no T3 checks, so claiming T3 prints "claimed but not verified: T3". Explained in the README;
+  backed by 24 tests + a Docker E2E run.

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Vote · {{ event.name }}{% endblock %}
+{% block content %}
+<p><a href="/events/{{ event.id }}">&larr; {{ event.name }}</a></p>
+<h1>Community vote</h1>
+{% if state == "none" %}
+  <p>This event has no community vote.</p>
+{% else %}
+  <p>
+    Voting {{ state }}{% if window %}: {{ window.opens_at.strftime("%Y-%m-%d %H:%M") }} to {{ window.closes_at.strftime("%Y-%m-%d %H:%M") }} UTC{% endif %}.
+    You can vote for as many projects as you like, once each, but not your own team's.
+    Projects are shown in an order shuffled just for you, so nobody benefits from being first.
+    {% if state != "closed" and not tallies %}Vote counts are hidden until voting closes.{% endif %}
+  </p>
+  {% if user.role.value != "participant" %}<p class="error">Only participants vote. You can view the ballot.</p>{% endif %}
+  <table>
+    <thead><tr><th>Project</th><th>Track</th>{% if tallies %}<th>Votes</th>{% endif %}<th></th></tr></thead>
+    <tbody>
+    {% for p in projects %}
+      <tr id="{{ p.id }}">
+        <td><a href="/projects/{{ p.id }}">{{ p.title }}</a><br><small>{{ p.tagline }}</small></td>
+        <td>{{ p.track.name if p.track else "" }}</td>
+        {% if tallies %}<td>{{ tallies[p.id].votes }}{% if tallies[p.id].votes_from_new_accounts %} <small title="votes from accounts created after voting opened">({{ tallies[p.id].votes_from_new_accounts }} new)</small>{% endif %}</td>{% endif %}
+        <td>
+          {% if state == "open" and user.role.value == "participant" %}
+          <form method="post" action="/projects/{{ p.id }}/{{ 'unvote' if p.id in voted else 'vote' }}" class="inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="{{ 'secondary' if p.id in voted else '' }}">{{ "Remove vote" if p.id in voted else "Vote" }}</button>
+          </form>
+          {% elif p.id in voted %}<mark>voted</mark>{% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4">No submitted projects yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}

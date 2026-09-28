@@ -13,6 +13,7 @@
 </p>
 <p><a href="/projects?event={{ event.id }}">See this event's projects</a>
   {% if event.results_published_at %} · <a href="/events/{{ event.id }}/results"><strong>Results</strong></a>{% endif %}
+  {% if user %} · <a href="/events/{{ event.id }}/ballot">Community vote</a>{% endif %}
   {% if user and user.role.value in ("organizer", "admin") %} · <a href="/organizer/events/{{ event.id }}/edit">Edit event</a>{% endif %}</p>
 
 {% if user and user.role.value == "participant" %}

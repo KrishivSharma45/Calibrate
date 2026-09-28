@@ -5,8 +5,9 @@ Raptors. Participants form teams and submit projects; judges score only what the
 tracks; organizers watch progress, normalize scores across harsh and generous judges, export everything as
 CSV, and publish results. One command, no cloud accounts, works with the network off.
 
-**Claimed tiers: T1 + T2** — [acceptance-report.txt](acceptance-report.txt) shows 7/7 checks passing.
-T3 and T4 are not claimed.
+**Claimed tiers: T1 + T2 + T3** — [acceptance-report.txt](acceptance-report.txt) shows all 7 run.py checks
+passing. run.py has no T3 checks, so it prints `claimed but not verified: T3`; T3 is backed by
+[tests/test_community.py](tests/test_community.py) (24 tests) instead. T4 is not claimed.
 
 ## Run it
 
@@ -36,6 +37,7 @@ There are two events:
 - **Sample Hack 2026** (`evt_01`): the fixture event. Its deadline (2026-03-01) is in the past, so it is **closed**,
   and it already has 126 scores.
 - **Raptors Live Demo 2026** (`evt_demo`): **open** for 30 days after first boot, for trying the full lifecycle.
+  Its community vote is open too (Events → the event → Community vote).
 
 ## Run the acceptance checker
 
@@ -53,7 +55,7 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-199 tests, most of them over HTTP the way curl and run.py see the app, including every "no" in the role
+223 tests, most of them over HTTP the way curl and run.py see the app, including every "no" in the role
 table (participant/judge/visitor against organizer routes, judge B against judge A's scores, etc.).
 
 ## What it does
@@ -81,6 +83,16 @@ table (participant/judge/visitor against organizer routes, judge B against judge
 - Results hidden until the organizer publishes; scores frozen after publishing.
 - Audit log of scores, submissions, deadline changes, role changes, exports, publishing — readable in the UI.
 
+**T3 — public**
+- Community voting by logged-in participants: one vote per project (database unique rule), never for your own
+  team, only inside the organizer's voting window (database clock). Holds under concurrent duplicate votes.
+- Vote tallies hidden from everyone but staff until the window closes.
+- Ballot in a random order per user (seeded by user + event: stable for you, different for everyone else).
+- Comments on gallery projects (rate-limited, escaped), which staff can hide; hidden comments are kept, not deleted.
+- Anti-abuse: login required, rate limits on votes and comments, every vote / duplicate / rate-limit hit in the
+  audit log, and a staff-only signal counting votes from accounts created after voting opened.
+  Sybil accounts are **not** fully stopped (open registration, no email) — see [THREAT-MODEL.md](THREAT-MODEL.md).
+
 Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 
 ## Documents
@@ -95,7 +107,8 @@ Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 
 ## What does not work yet (honest list)
 
-- **No community voting, comments or public ballot (T3).** Not built, not claimed.
+- **Sybil voting is only detected, not prevented.** Anyone can register and vote; we flag votes from new
+  accounts to staff but don't block them.
 - **No email.** The portal runs offline, so judge invite links are shown to the organizer to pass on, and
   there is no password reset or email verification. Registration is open to anyone who can reach the portal.
 - **No TLS in compose.** Put it behind a reverse proxy and set `COOKIE_SECURE=1`.

@@ -34,6 +34,7 @@ from app.models import (
     TeamMember,
     Track,
     User,
+    VotingWindow,
     utcnow,
 )
 from app.security import create_session, hash_password, hash_token
@@ -199,6 +200,9 @@ def seed_accounts_and_demo_event(db: DbSession, password_hash: str) -> dict[str,
         db.flush()
         ins.add(JudgeTrack(judge_id=JUDGE_A, track_id="trk_demo_1"))
         ins.add(JudgeTrack(judge_id=JUDGE_B, track_id="trk_demo_1"))
+        # Community voting open alongside submissions, closing 2 days after them.
+        ins.add(VotingWindow(event_id=DEMO_EVENT_ID, opens_at=utcnow() - timedelta(days=1),
+                             closes_at=utcnow() + timedelta(days=32)))
     db.flush()
     return dict(ins.added)
 

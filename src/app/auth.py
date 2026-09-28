@@ -158,6 +158,20 @@ class LoginThrottle:
 login_throttle = LoginThrottle()
 
 
+class RateLimit(LoginThrottle):
+    """Same sliding window, counting every action instead of failures."""
+
+    def allow(self, key: str) -> bool:
+        if self.blocked(key):
+            return False
+        self.fail(key)
+        return True
+
+
+vote_limit = RateLimit(max_failures=30, window_seconds=600)     # 30 votes / 10 min / user
+comment_limit = RateLimit(max_failures=5, window_seconds=60)    # 5 comments / min / user
+
+
 def safe_next(target: str | None, default: str = "/") -> str:
     """Only allow local paths after login, never //evil.com or https://evil.com."""
     if not target or not target.startswith("/") or target.startswith("//") or "\\" in target:

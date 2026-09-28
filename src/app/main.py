@@ -14,6 +14,7 @@ from app.auth import attach_auth, csrf_protect
 from app.config import STATIC_DIR
 from app.db import get_db
 from app.routes import auth as auth_routes
+from app.routes import community as community_routes
 from app.routes import events as event_routes
 from app.routes import judging as judging_routes
 from app.routes import organizer as organizer_routes
@@ -33,6 +34,7 @@ app.include_router(judging_routes.router)
 app.include_router(organizer_routes.router)  # after events: /organizer/events/new must match first
 app.include_router(results_routes.router)
 app.include_router(people_routes.router)
+app.include_router(community_routes.router)
 
 
 @app.middleware("http")

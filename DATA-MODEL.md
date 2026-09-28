@@ -1,6 +1,6 @@
 # Data model
 
-18 tables, defined in [`src/app/models.py`](src/app/models.py). Primary keys are short strings: rows imported
+21 tables, defined in [`src/app/models.py`](src/app/models.py). Primary keys are short strings: rows imported
 from `fixtures.json` keep their fixture id (`evt_01`, `jdg_07`, `prj_41`), rows created in the app get a random
 id with the same kind of prefix (`prj_3fa9c1e2b7d0`). All timestamps are stored and returned as UTC.
 
@@ -30,6 +30,11 @@ erDiagram
     scores ||--o{ score_items : "per criterion"
     rubric_criteria ||--o{ score_items : "value for"
     users ||--o{ audit_log : "actor"
+    events ||--o| voting_windows : "community vote"
+    users ||--o{ votes : casts
+    projects ||--o{ votes : receives
+    users ||--o{ comments : writes
+    projects ||--o{ comments : has
 ```
 
 ## Tables
@@ -68,6 +73,13 @@ erDiagram
 | `score_items` | (score_id, criterion_id) PK, value | **`CHECK value BETWEEN 1 AND 5`**. One row per rubric criterion, so the rubric is data, not columns. |
 | `audit_log` | id, at, actor_id, action, entity_type, entity_id, detail (JSON) | Append-only from the app's side. |
 
+### Community (T3)
+| Table | Key columns | Notes |
+|---|---|---|
+| `voting_windows` | **event_id** (PK), opens_at, closes_at | `CHECK opens_at < closes_at`. A separate table rather than new columns on `events`, so existing databases pick it up without a migration. |
+| `votes` | id, event_id, project_id, user_id, created_at | **Unique (user_id, project_id)**: one vote per person per project, enforced by the database even under concurrent requests. |
+| `comments` | id, project_id, user_id, body, created_at, hidden_at | Moderation sets `hidden_at`; comments are never deleted (evidence). |
+
 ### Why scores are split into `scores` + `score_items`
 The fixture has three fixed criteria, but the brief asks for an organizer-configurable rubric. One row per
 criterion means changing the rubric never needs a schema migration, and the weighted total is computed from
@@ -87,7 +99,7 @@ the current weights (see [JUDGING.md](JUDGING.md)).
 | `scores` | `assignments` (a score implies an assignment) + `scores` + `score_items`; empty comments kept as "" |
 
 Plus: an organizer (`organizer@dogfood.local`), an admin (`admin@dogfood.local`), an open demo event with three
-tracks, a prize and a custom question, and four fixed demo sessions (only while `DEMO_SESSIONS=1`).
+tracks, a prize, a custom question and an open community-voting window, and four fixed demo sessions (only while `DEMO_SESSIONS=1`).
 
 Result on a fresh database: 2 events, 11 tracks, 123 users, 40 teams, 91 memberships, 41 projects
 (1 flagged duplicate), 126 scores, 378 score items. A restart adds nothing.
@@ -112,4 +124,5 @@ formula injection neutralised):
 | `results` | event, rank, track_rank, raw_rank, project, track, reviews, effective_reviews, raw_mean, z_mean, normalized, flags |
 | `audit` | the whole audit log |
 
-JSON equivalents: `/api/projects`, `/api/judge/scores`, `/api/events/{id}/progress`, `/api/events/{id}/results`, `/api/audit`.
+JSON equivalents: `/api/projects`, `/api/judge/scores`, `/api/events/{id}/progress`, `/api/events/{id}/results`,
+`/api/events/{id}/votes` (staff any time, everyone after voting closes), `/api/projects/{id}/comments`, `/api/audit`.

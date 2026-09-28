@@ -4,8 +4,7 @@ What we protect, from whom, and — for each attack — whether it is **stopped*
 **not stopped**, with the mechanism and the test that proves it. Where we did not solve something we say so;
 the honest list is more useful to whoever deploys this than a heroic one.
 
-Scope: the portal as shipped (`docker compose up`, T1 + T2). Community voting (T3) is **not built**, so
-attacks on public voting are assessed as "not applicable yet" with what would be needed.
+Scope: the portal as shipped (`docker compose up`, T1 + T2 + T3 community voting and comments).
 
 ---
 
@@ -57,13 +56,32 @@ database is trusted; a DB superuser can do anything (see §5, audit log tamperin
 
 ## 4. Attacks
 
-### Sybil votes — **not applicable yet / would not be stopped**
-There is no community voting (T3 not built). If it were added today, registration is open, needs no email
-verification (the portal must run offline, so we cannot send mail), and has no CAPTCHA. One person could make
-many accounts. What would be needed: invite- or event-code-gated registration, one vote per *verified* person,
-and rate limits per IP. We are not claiming any of this.
+### Sybil votes — **detected, not stopped**
+Registration is open and needs no email verification (the portal must run offline, so it cannot send mail) and
+there is no CAPTCHA. One person can make several accounts and vote once from each.
+What we do:
+- Only logged-in **participants** vote; judges and staff cannot. `test_only_participants_vote`.
+- Staff see, per project, how many votes came from **accounts created after voting opened** — the typical
+  sock-puppet pattern. `test_staff_see_live_tallies_with_new_account_signal`.
+- Every vote is in the audit log with the account, so suspicious clusters can be reviewed and removed.
+What would actually stop it: invite- or event-code-gated registration, one vote per *verified* person, per-IP
+limits at a reverse proxy. Not built.
 
-### Ballot stuffing — **stopped for judge scores; voting not built**
+### Ballot stuffing — **stopped** (for one account)
+Community votes:
+- **One vote per (user, project) is a database unique constraint.** Two identical votes sent at the same moment
+  on Postgres → one 200, one 409. `test_vote_once_per_project`.
+- No voting for your own team. `test_cannot_vote_for_own_team`.
+- Only inside the organizer's window, by the database clock. `test_no_votes_outside_window`.
+- 30 votes per 10 minutes per account; hits are audited. `test_vote_rate_limit_is_enforced_and_audited`.
+- Duplicate attempts are audited too (`vote.duplicate`), so repeated tries are visible.
+- Voting is a CSRF-protected POST, so another site can't make your browser vote. `test_vote_form_needs_csrf`.
+- Tallies are hidden until the window closes, so nobody can watch the count and target a rival.
+  `test_tallies_hidden_while_voting`.
+- The ballot is shuffled per user (seeded, stable), so position gives no project an edge and reloading can't
+  change it. `test_shuffle_is_stable_per_user_and_differs_between_users`.
+
+Judge scores:
 - One score per (judge, project) is a **database unique constraint**; a second submit updates the same row.
   `test_judge_cannot_score_same_project_twice`.
 - Values must be whole numbers 1–5 (app check and DB `CHECK`). `test_invalid_scores_rejected`, `test_score_value_must_be_1_to_5`.
@@ -138,6 +156,7 @@ Not stopped:
 | Open redirect after login | **Stopped** | `next=` must be a local path; `//evil`, `https://evil`, `/\evil` fall back to `/` (`test_safe_next`, `test_html_login_flow_and_no_open_redirect`). |
 | SQL injection | **Stopped** | ORM with bound parameters only; search escapes `%`/`_` (`test_gallery_search_and_filters`). |
 | Stored XSS via links | **Stopped** | Only `http(s)` URLs stored; links get `rel="noopener noreferrer nofollow ugc"`. |
+| Comment spam / abuse | **Partly** | Login required, 1–2000 chars, 5 per minute per account, escaped on output, staff can hide (kept for evidence, audited) (`test_comment_lifecycle_and_moderation`, `test_comment_validation_rate_limit_and_escaping`). No automatic spam filter; Sybil accounts can spread spam across accounts. |
 | Clickjacking | **Stopped** | `X-Frame-Options: DENY`, CSP `frame-ancestors 'none'`. |
 | Team invite link leak | **Partly** | 192-bit token, members can rotate it (old one 404s), joining needs login + a POST, team size cap, closes at the deadline, `Referrer-Policy: same-origin`. Anyone holding a valid link can still join until then. |
 | Judge invite link leak | **Partly** | One-time use, 7-day expiry, stored hashed, re-invite cancels old links. Whoever opens it first becomes that judge. Links are shown to the organizer (no email offline). |
