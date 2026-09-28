@@ -2,9 +2,9 @@
 base_url = "http://localhost:8080"
 
 [tiers]
-# Honest claims only: T2 routes are not built yet.
-claimed = ["T1"]
-pitch = "A self-hosted hackathon portal with backend-enforced judge isolation and normalized scoring."
+# Honest claims only. T3 (community voting) is not built.
+claimed = ["T1", "T2"]
+pitch = "Self-hosted hackathon portal: backend-enforced judge isolation, in-track balanced assignment, and confidence-weighted z-score normalization that lets flat judges abstain."
 
 [auth]
 # Printed by the portal on boot. Demo-only sessions; they exist while DEMO_SESSIONS=1.

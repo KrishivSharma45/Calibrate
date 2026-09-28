@@ -129,3 +129,16 @@ What `run.py` taught me:
   Publishing requires submissions to be closed. Publish and unpublish are both audited.
 - Near-miss: re-running run.py while Docker Desktop was down overwrote acceptance-report.txt with FAILs.
   Only regenerate the report when the stack is confirmed up.
+## 2026-09-28 — T2 complete, docs, normalization proof
+
+- Judge invites: one-time, 7-day, SHA-256-stored links (no email offline, so the organizer hands the link over).
+  Existing participants can't be "invited" into judging; that is an admin-only role change, refused for anyone
+  on a team. Roles are read from the DB on every request, so a demotion hits live sessions immediately.
+- Bug: after editing a judge's tracks, the response showed the OLD tracks. Same family as before: the loaded
+  collection didn't see rows added/deleted through the session. `db.refresh`.
+- Wrote JUDGING.md from real numbers (scripts/normalization_report.py): 39 of 40 projects move. Checking my
+  own first draft against the data caught 3 wrong explanations: I had blamed "harsh judges" for two big rises
+  that are really the near-flat-judge weakness (sigma 0.094 and 0.1). Kept them in, labelled as the weakness.
+  The honest version is a better argument than the tidy one.
+- THREAT-MODEL.md cites 47 test names as evidence; a script checks every one exists.
+- Final: fresh `docker compose down -v && up`, run.py "claimed T1 T2, verified T1 T2".
