@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Users · Admin{% endblock %}
+{% block content %}
+<h1>Users and roles</h1>
+<p>Only admins can change roles. Every change is in the audit log. People on a team cannot be made judges or staff.</p>
+<form method="get" action="/admin/users">
+  <fieldset role="group"><input type="search" name="q" value="{{ q }}" placeholder="Search name or email"><button type="submit">Search</button></fieldset>
+</form>
+<table>
+  <thead><tr><th>User</th><th>Role</th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.name }}<br><small>{{ u.email }} · {{ u.id }}</small></td>
+      <td>
+        {% if u.id == user.id %}{{ u.role.value }} <small>(you)</small>{% else %}
+        <form method="post" action="/admin/users/{{ u.id }}/role" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <fieldset role="group">
+            <select name="role" aria-label="Role">
+              {% for r in roles %}<option value="{{ r.value }}" {% if r == u.role %}selected{% endif %}>{{ r.value }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="secondary">Save</button>
+          </fieldset>
+        </form>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

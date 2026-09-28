@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Accept invite · Dogfood Portal{% endblock %}
+{% block content %}
+<article class="narrow">
+  <h1>Welcome, {{ judge.name }}</h1>
+  <p>You have been invited to judge. Choose a password for <strong>{{ judge.email }}</strong>.</p>
+  {% if errors %}<ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  <form method="post" action="/invite/{{ token }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Password <small>(at least 10 characters)</small>
+      <input type="password" name="password" minlength="10" required autocomplete="new-password"></label>
+    <button type="submit">Set password and start judging</button>
+  </form>
+</article>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Judges · Organizer{% endblock %}
+{% block content %}
+<p><a href="/organizer">&larr; Organizer</a></p>
+<h1>Judges</h1>
+{% if errors %}<ul class="error" role="alert">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+{% if invite_url %}
+<article>
+  <header><strong>Invite link (shown once)</strong></header>
+  <p>Send this to the judge. It lets them set a password, works once and expires in 7 days.</p>
+  <input readonly value="{{ invite_url }}" aria-label="Invite link">
+</article>
+{% endif %}
+
+<details {% if not judges %}open{% endif %}>
+  <summary role="button" class="secondary">Invite a judge</summary>
+  <form method="post" action="/organizer/judges/invite">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="grid">
+      <label>Name <input name="name" maxlength="200"></label>
+      <label>Email <input type="email" name="email" required></label>
+    </div>
+    {% for ev in events %}
+      <fieldset><legend>{{ ev.name }}</legend>
+        {% for t in ev.tracks %}<label class="inline-radio"><input type="checkbox" name="track_ids" value="{{ t.id }}"> {{ t.name }}</label>{% endfor %}
+      </fieldset>
+    {% endfor %}
+    <button type="submit">Invite</button>
+  </form>
+</details>
+
+<table>
+  <thead><tr><th>Judge</th><th>Can log in</th><th>Tracks</th></tr></thead>
+  <tbody>
+  {% for j in judges %}
+    {% set mine = j.judge_tracks | map(attribute='track_id') | list %}
+    <tr>
+      <td>{{ j.name }}<br><small>{{ j.email }} · {{ j.id }}</small></td>
+      <td>{{ "yes" if j.password_hash else "invite pending" }}</td>
+      <td>
+        <form method="post" action="/organizer/judges/{{ j.id }}/tracks" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          {% for ev in events %}{% for t in ev.tracks %}
+            <label class="inline-radio"><input type="checkbox" name="track_ids" value="{{ t.id }}" {% if t.id in mine %}checked{% endif %}> <small>{{ t.name }}</small></label>
+          {% endfor %}{% endfor %}
+          <button type="submit" class="secondary outline">Save tracks</button>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

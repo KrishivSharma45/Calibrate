@@ -34,7 +34,13 @@ async def read_body(request: Request) -> tuple[dict, bool]:
         if not isinstance(body, dict):
             raise HTTPException(status_code=422, detail="Body must be a JSON object")
         return body, True
-    return {k: v for k, v in (await request.form()).items()}, False
+    fields: dict = {}
+    for key, value in (await request.form()).multi_items():
+        if key in fields:  # repeated names (checkboxes) become a list
+            fields[key] = [*fields[key], value] if isinstance(fields[key], list) else [fields[key], value]
+        else:
+            fields[key] = value
+    return fields, False
 
 
 def wants_html(request: Request) -> bool:

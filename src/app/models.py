@@ -103,6 +103,19 @@ class Session(Base):
     user: Mapped[User] = relationship()
 
 
+class Invite(Base):
+    """One-time link for an invited judge to set a password. Stored by SHA-256, like sessions."""
+
+    __tablename__ = "invites"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_by: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime)
+    used_at: Mapped[datetime | None] = mapped_column(UTCDateTime)
+
+
 # --- events ----------------------------------------------------------------
 
 
