@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Audit log · Dogfood Portal{% endblock %}
+{% block content %}
+<h1>Audit log</h1>
+<p>Every score change, submission, deadline change, role change, export and publish. Append-only: the app never edits or deletes entries.
+  <a href="/api/export.csv?kind=audit">audit.csv</a></p>
+<form method="get" action="/organizer/audit" class="filters">
+  <select name="action" aria-label="Action">
+    <option value="">All actions</option>
+    {% for a in actions %}<option value="{{ a }}" {% if a == f.action %}selected{% endif %}>{{ a }}</option>{% endfor %}
+  </select>
+  <input name="actor" value="{{ f.actor }}" placeholder="Actor id (e.g. jdg_09)" aria-label="Actor">
+  <input name="entity" value="{{ f.entity }}" placeholder="Entity id (e.g. prj_41)" aria-label="Entity">
+  <span></span>
+  <button type="submit">Filter</button>
+</form>
+<p><small>{{ total }} entr{{ 'y' if total == 1 else 'ies' }}</small></p>
+<table>
+  <thead><tr><th>When (UTC)</th><th>Who</th><th>Action</th><th>What</th><th>Detail</th></tr></thead>
+  <tbody>
+  {% for e in rows %}
+    <tr>
+      <td><small>{{ e.at[:19] | replace('T', ' ') }}</small></td>
+      <td>{{ e.actor }} {% if e.actor_id %}<small>{{ e.actor_id }}</small>{% endif %}</td>
+      <td><code>{{ e.action }}</code></td>
+      <td>{{ e.entity_type }} <small>{{ e.entity_id }}</small></td>
+      <td><small class="prewrap">{{ e.detail | tojson }}</small></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5">No entries.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% set pages = ((total + page_size - 1) // page_size) %}
+{% if pages > 1 %}
+<nav class="pager">
+  {% if page > 1 %}<a href="?action={{ f.action }}&actor={{ f.actor }}&entity={{ f.entity }}&page={{ page - 1 }}">&larr; newer</a>{% endif %}
+  <span>page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a href="?action={{ f.action }}&actor={{ f.actor }}&entity={{ f.entity }}&page={{ page + 1 }}">older &rarr;</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

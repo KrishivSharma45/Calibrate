@@ -116,3 +116,16 @@ What `run.py` taught me:
   organizer-created events (random ids!) would have shown up shuffled. Fixed with explicit ordering and a test
   that compares the create response with a fresh reload.
 - SQLAlchemy Row objects in a set: `(a, b) in rows_set` is not something to rely on; build plain tuples.
+## 2026-09-28 — Normalization, results, publishing, audit viewer
+
+- Flat judges abstain (weight 0) rather than vote "average" (z = 0). Including their zeros would pull every
+  project they reviewed toward the middle, which hurts strong projects and helps weak ones. Test proves it.
+- Judges with <3 scores get weight n/3; projects whose reviewer weights sum < 2 are flagged low confidence.
+- Hand-built test: a harsh judge's favourite (raw 3) outranks a generous judge's least favourite (raw 4)
+  after normalization. That one test is the whole argument for normalizing.
+- Fixture surprise: jdg_01's ONLY score was on prj_07, the superseded duplicate. Excluding duplicates removes
+  jdg_01 from the results entirely. Correct, but worth explaining in JUDGING.md.
+- Results are 403 to everyone but staff until published; the public view drops per-judge data and flags.
+  Publishing requires submissions to be closed. Publish and unpublish are both audited.
+- Near-miss: re-running run.py while Docker Desktop was down overwrote acceptance-report.txt with FAILs.
+  Only regenerate the report when the stack is confirmed up.

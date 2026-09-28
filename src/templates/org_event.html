@@ -12,6 +12,8 @@
     <li><a href="/organizer/events/{{ event.id }}/edit">Edit event</a></li>
     <li><a href="/organizer/events/{{ event.id }}/rubric">Rubric</a></li>
     <li><a href="/organizer/events/{{ event.id }}/assignments">Assignments</a></li>
+    <li><a href="/events/{{ event.id }}/results">Results &amp; publishing</a></li>
+    <li><a href="/organizer/audit">Audit log</a></li>
     <li><a href="/events/{{ event.id }}">Public page</a></li>
   </ul>
 </nav>
@@ -56,7 +58,7 @@
 
 <h3>Exports</h3>
 <ul>
-  {% for kind in ["projects", "scores", "progress"] %}
+  {% for kind in ["projects", "scores", "progress", "results"] %}
   <li><a href="/api/export.csv?kind={{ kind }}&event={{ event.id }}">{{ kind }}.csv</a></li>
   {% endfor %}
 </ul>

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Results · {{ event.name }}{% endblock %}
+{% block content %}
+<hgroup>
+  <h1>Results: {{ event.name }}</h1>
+  <p>{% if r.published_at %}Published {{ r.published_at[:16] | replace('T', ' ') }} UTC{% else %}<mark>Not published</mark>, only organizers can see this page{% endif %}</p>
+</hgroup>
+
+{% if staff %}
+<p>
+  <a href="/organizer/events/{{ event.id }}">&larr; Organizer view</a> ·
+  <a href="/api/export.csv?kind=results&event={{ event.id }}">results.csv</a>
+</p>
+<form method="post" action="/organizer/events/{{ event.id }}/results/{{ 'unpublish' if r.published_at else 'publish' }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <button type="submit" class="{{ 'secondary' if r.published_at else '' }}">{{ "Unpublish results" if r.published_at else "Publish results" }}</button>
+</form>
+<p><small>Normalized score = event mean + (confidence-weighted mean of each judge's z-score) &times; event std-dev.
+  Event mean {{ r.event_mean }}, std-dev {{ r.event_sd }}. Flat judges and single-score judges carry no ranking
+  signal and abstain; judges with fewer than 3 scores count less. See JUDGING.md.</small></p>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th><th>Project</th><th>Track</th><th>Reviews</th>
+      <th>Raw mean</th><th>Normalized</th>
+      {% if staff %}<th>Raw rank</th><th>Track rank</th><th>Flags</th>{% endif %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for p in r.projects %}
+    <tr class="{{ 'warn' if staff and p.flags }}">
+      <td>{{ p.rank if p.rank else "–" }}</td>
+      <td><a href="/projects/{{ p.project_id }}">{{ p.title }}</a></td>
+      <td>{{ p.track or "" }}</td>
+      <td>{{ p.reviews }}{% if staff and p.effective_reviews != p.reviews %} <small>({{ p.effective_reviews }} eff.)</small>{% endif %}</td>
+      <td>{{ "%.2f" | format(p.raw_mean) if p.raw_mean is not none else "–" }}</td>
+      <td>{% if p.normalized is not none %}<strong>{{ "%.2f" | format(p.normalized) }}</strong>{% else %}<small>not ranked yet</small>{% endif %}</td>
+      {% if staff %}
+        <td>{{ p.raw_rank or "–" }}
+          {% if p.rank and p.raw_rank and p.rank != p.raw_rank %}<small>({{ "%+d" | format(p.raw_rank - p.rank) }})</small>{% endif %}</td>
+        <td>{{ p.track_rank or "–" }}</td>
+        <td><small>{{ p.flags | join(", ") | replace("_", " ") }}{% if p.flagged_judges %} judged by flagged: {{ p.flagged_judges | join(", ") }}{% endif %}</small></td>
+      {% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if staff %}
+<h2>Judges</h2>
+<table>
+  <thead><tr><th>Judge</th><th>Scores</th><th>Mean</th><th>Std-dev</th><th>Weight</th><th>Flag</th></tr></thead>
+  <tbody>
+  {% for j in r.judges %}
+    <tr class="{{ 'warn' if j.flag in ('flat', 'single_score') }}">
+      <td>{{ j.name }} <small>{{ j.judge_id }}</small></td>
+      <td>{{ j.n }}</td><td>{{ "%.2f" | format(j.mean) }}</td><td>{{ "%.2f" | format(j.sd) }}</td>
+      <td>{{ j.weight }}</td>
+      <td>{% if j.flag == 'flat' %}<strong>flat: same total every time, no ranking signal</strong>
+          {% elif j.flag == 'single_score' %}single score, no ranking signal
+          {% elif j.flag == 'few_scores' %}few scores, reduced weight{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
