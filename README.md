@@ -30,7 +30,8 @@ Every seeded account uses the password **`dogfood-demo`** (demo only — see [TH
 |---|---|---|
 | Organizer | `organizer@dogfood.local` | Organizer → event → progress, rubric, assignments, results, audit log |
 | Admin | `admin@dogfood.local` | Organizer pages + Users & roles |
-| Judge A | `jdg_09`'s email from `fixtures.json` | Judging queue (track: Developer tools) |
+| Judge A | `sofia.duarte@example.org` (jdg_09) | Judging queue (Developer tools + the demo event's AI tools track) |
+| Judge B | `jonas.vogel@example.org` (jdg_26) | A peer of judge A; cannot read judge A's scores |
 | Participant | any team member email from `fixtures.json` | Events → Raptors Live Demo 2026 → create a team, submit |
 
 There are two events:
