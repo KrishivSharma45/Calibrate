@@ -1,15 +1,17 @@
-# Dogfood Portal
+# ⚖️ Calibrate
+
+**Hackathon judging that corrects for harsh and generous judges.**
 
 A self-hosted, open-source hackathon **submission and judging portal**, built for DOGFOOD 2026 by Hackathon
 Raptors. Participants form teams and submit projects; judges score only what they are assigned in their own
 tracks; organizers watch progress, normalize scores across harsh and generous judges, export everything as
 CSV, and publish results. One command, no cloud accounts, works with the network off.
 
-**Claimed tiers: T1 + T2 + T3** — [acceptance-report.txt](acceptance-report.txt) shows all 7 run.py checks
+🏆 **Claimed tiers: T1 + T2 + T3** — [acceptance-report.txt](acceptance-report.txt) shows all 7 run.py checks
 passing. run.py has no T3 checks, so it prints `claimed but not verified: T3`; T3 is backed by
 [tests/test_community.py](tests/test_community.py) (24 tests) instead. T4 is not claimed.
 
-## Run it
+## 🚀 Run it
 
 ```bash
 docker compose up --build
@@ -22,7 +24,7 @@ All CSS is vendored, no CDN.)
 
 To start from an empty database: `docker compose down -v`.
 
-## Demo logins
+## 🔑 Demo logins
 
 Every seeded account uses the password **`dogfood-demo`** (demo only — see [THREAT-MODEL.md](THREAT-MODEL.md) §6).
 
@@ -40,7 +42,7 @@ There are two events:
 - **Raptors Live Demo 2026** (`evt_demo`): **open** for 30 days after first boot, for trying the full lifecycle.
   Its community vote is open too (Events → the event → Community vote).
 
-## Run the acceptance checker
+## ✅ Run the acceptance checker
 
 ```bash
 python3 run.py .dogfood.toml > acceptance-report.txt
@@ -49,7 +51,7 @@ python3 run.py .dogfood.toml > acceptance-report.txt
 The four `Cookie:` headers in [.dogfood.toml](.dogfood.toml) are fixed demo sessions that the portal creates on boot
 while `DEMO_SESSIONS=1` (the default). They are public, so set `DEMO_SESSIONS=0` for any real deployment.
 
-## Run the tests
+## 🧪 Run the tests
 
 ```bash
 pip install -r requirements-dev.txt
@@ -59,9 +61,9 @@ pytest
 223 tests, most of them over HTTP the way curl and run.py see the app, including every "no" in the role
 table (participant/judge/visitor against organizer routes, judge B against judge A's scores, etc.).
 
-## What it does
+## ✨ What it does
 
-**T1 — core**
+**🧱 T1 — core**
 - Accounts with bcrypt passwords and server-side sessions (hashed at rest, HttpOnly, SameSite=Lax), CSRF
   protection on every form, roles: visitor, participant, judge, organizer, admin — checked in the backend.
 - Organizers create and edit events: open/close dates (UTC), tracks, prizes, team size, custom questions.
@@ -72,7 +74,7 @@ table (participant/judge/visitor against organizer routes, judge B against judge
 - Public gallery with search and filters (event, track, tag). The fixture's duplicate submission is detected,
   flagged and kept out of the gallery and results.
 
-**T2 — judging**
+**🧑‍⚖️ T2 — judging**
 - Judge invitations (one-time, hashed, expiring links) and per-judge tracks; admin-only role changes.
 - Balanced, in-track auto-assignment (target reviews per project), plus manual add/remove.
 - Organizer-weighted rubric (weights sum to 100%).
@@ -84,7 +86,7 @@ table (participant/judge/visitor against organizer routes, judge B against judge
 - Results hidden until the organizer publishes; scores frozen after publishing.
 - Audit log of scores, submissions, deadline changes, role changes, exports, publishing — readable in the UI.
 
-**T3 — public**
+**🗳️ T3 — public**
 - Community voting by logged-in participants: one vote per project (database unique rule), never for your own
   team, only inside the organizer's voting window (database clock). Holds under concurrent duplicate votes.
 - Vote tallies hidden from everyone but staff until the window closes.
@@ -96,7 +98,7 @@ table (participant/judge/visitor against organizer routes, judge B against judge
 
 Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 
-## Documents
+## 📚 Documents
 
 | | |
 |---|---|
@@ -106,7 +108,7 @@ Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 | [THREAT-MODEL.md](THREAT-MODEL.md) | Assets, actors, trust boundaries; each attack stopped / partly / not stopped, with the test that proves it |
 | [normalization-report.md](normalization-report.md) | Raw vs normalized ranking on the real fixtures (`python scripts/normalization_report.py`) |
 
-## What does not work yet (honest list)
+## ⚠️ What does not work yet (honest list)
 
 - **Sybil voting is only detected, not prevented.** Anyone can register and vote; we flag votes from new
   accounts to staff but don't block them.
@@ -122,10 +124,17 @@ Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 - **No per-team deadline extensions**, and no way to leave a team.
 - The demo sessions and the shared demo password are public — for the hackathon demo only.
 
-## Demo video
+## 🎬 Demo video
 
 _Link to be added._
 
-## License
+## 👤 Author
+
+**Krishiv Sharma**
+- 🎓 2nd-year B.Tech CSE (Cybersecurity) student
+- 🛡️ Built solo for **DOGFOOD 2026** by Hackathon Raptors, with a focus on backend-enforced isolation and an honest threat model
+- 🐙 GitHub: [@KrishivSharma45](https://github.com/KrishivSharma45)
+
+## 📄 License
 
 [MIT](LICENSE)
