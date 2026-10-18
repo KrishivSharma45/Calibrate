@@ -2,14 +2,43 @@
 
 **Hackathon judging that corrects for harsh and generous judges.**
 
-A self-hosted, open-source hackathon **submission and judging portal**, built for DOGFOOD 2026 by Hackathon
-Raptors. Participants form teams and submit projects; judges score only what they are assigned in their own
-tracks; organizers watch progress, normalize scores across harsh and generous judges, export everything as
-CSV, and publish results. One command, no cloud accounts, works with the network off.
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-336791)
+![Tests: 223 passing](https://img.shields.io/badge/tests-223%20passing-brightgreen)
+![run.py: 7/7](https://img.shields.io/badge/run.py-7%2F7%20PASS-brightgreen)
 
-🏆 **Claimed tiers: T1 + T2 + T3** — [acceptance-report.txt](acceptance-report.txt) shows all 7 run.py checks
+A self-hosted, open-source **hackathon submission and judging portal**, built for DOGFOOD 2026 by
+Hackathon Raptors.
+
+- 👥 **Participants** form teams by invite link and submit projects until the deadline.
+- 🧑‍⚖️ **Judges** score only the projects assigned to them in their own tracks, and can never see another judge's scores.
+- 🗂️ **Organizers** assign judges, set the rubric, track progress, export CSVs and publish fair, normalized results.
+- 🌍 **Everyone** can browse the gallery, vote and comment.
+
+One command, no cloud accounts, works with the network off.
+
+**Quick links:** [Run it](#-run-it) · [Demo logins](#-demo-logins) · [How judging works](JUDGING.md) ·
+[Threat model](THREAT-MODEL.md) · [Architecture](ARCHITECTURE.md) · [Data model](DATA-MODEL.md)
+
+🏆 **Claimed tiers: T1 + T2 + T3.** [acceptance-report.txt](acceptance-report.txt) shows all 7 run.py checks
 passing. run.py has no T3 checks, so it prints `claimed but not verified: T3`; T3 is backed by
 [tests/test_community.py](tests/test_community.py) (24 tests) instead. T4 is not claimed.
+
+## 💡 Why Calibrate
+
+Judges are not calibrated instruments. In the shared fixture data, judge averages range from **2.95** to
+**4.23** on a 1–5 scale, so a project's raw score depends a lot on *who* happened to review it.
+
+Calibrate compares every score with **that judge's own usual scoring** (a per-judge z-score), then puts the
+result back on the 1–5 scale. Judges who give everyone the same score carry no ranking information, so they
+**abstain** instead of dragging every project toward the middle.
+
+On the fixture data, **39 of 40 projects change rank**. For example, *Small Relay* is 14th by raw average
+but 33rd after normalization: its raw score was propped up by a judge who gave 4/4/4 to everything. Raw and
+normalized scores are always shown side by side, with the reasons flagged.
+Full method and every edge case: [JUDGING.md](JUDGING.md).
 
 ## 🚀 Run it
 
@@ -17,12 +46,13 @@ passing. run.py has no T3 checks, so it prints `claimed but not verified: T3`; T
 docker compose up --build
 ```
 
-Open http://localhost:8080. The first boot creates the tables, loads `fixtures.json` and prints the demo
-session headers. Restarting is safe: seeding never duplicates or overwrites data.
-(Building the image needs the internet once, for the Python packages; after that it runs fully offline.
-All CSS is vendored, no CDN.)
+Then open **http://localhost:8080**.
 
-To start from an empty database: `docker compose down -v`.
+- The first boot creates the tables, loads `fixtures.json` and prints the demo session headers.
+- Restarting is safe: seeding never duplicates or overwrites data.
+- Building the image needs the internet once (Python packages). After that it runs fully offline; all CSS is
+  bundled, no CDN.
+- To start again from an empty database: `docker compose down -v`.
 
 ## 🔑 Demo logins
 
@@ -96,7 +126,18 @@ table (participant/judge/visitor against organizer routes, judge B against judge
   audit log, and a staff-only signal counting votes from accounts created after voting opened.
   Sybil accounts are **not** fully stopped (open registration, no email) — see [THREAT-MODEL.md](THREAT-MODEL.md).
 
-Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
+**🎁 Extras:** every page action also has a JSON API, with OpenAPI docs at `/docs`.
+
+## 🛠️ Tech stack
+
+| Part | Choice | Why |
+|---|---|---|
+| Backend | Python + **FastAPI** | Dependencies are a natural place for auth and role checks |
+| Database | **PostgreSQL 16** + SQLAlchemy 2 | Real constraints, row locks, one clock for deadlines |
+| Frontend | Server-rendered **Jinja2** + Pico.css | No JavaScript build, no CDN, strict Content Security Policy |
+| Auth | Our own: bcrypt + server-side sessions + CSRF tokens | No auth-as-a-service, per the rules |
+| Run | **Docker Compose** (app + db) | One command, offline |
+| Tests | **pytest** (223 tests) | Most hit the API over HTTP, like curl does |
 
 ## 📚 Documents
 
@@ -108,7 +149,7 @@ Free extras: every page action also has a JSON API; OpenAPI docs at `/docs`.
 | [THREAT-MODEL.md](THREAT-MODEL.md) | Assets, actors, trust boundaries; each attack stopped / partly / not stopped, with the test that proves it |
 | [normalization-report.md](normalization-report.md) | Raw vs normalized ranking on the real fixtures (`python scripts/normalization_report.py`) |
 
-## ⚠️ What does not work yet (honest list)
+## ⚠️ What doesn't work yet (honest list)
 
 - **Sybil voting is only detected, not prevented.** Anyone can register and vote; we flag votes from new
   accounts to staff but don't block them.
